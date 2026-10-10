@@ -72,6 +72,8 @@
   .card { background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:20px 22px; margin-bottom:16px; }
   .card h2 { font:600 15px var(--sans); margin:0 0 4px; letter-spacing:-.01em; }
   .card .desc { color:var(--muted); font-size:13px; margin:0 0 16px; }
+  .eyebrow-link { display:inline-block; text-decoration:none; }
+  .eyebrow-link:hover { color:var(--ink); }
   .eyebrow { font:12px var(--mono); color:var(--muted); text-transform:uppercase; letter-spacing:.04em; margin-bottom:8px; }
 
   /* terminal log */
@@ -281,13 +283,14 @@
     <div class="hero"><div><span class="kicker" data-i18n="k_settings"></span><h1 data-i18n="h_settings"></h1>
       <p data-i18n="settings_intro"></p></div></div>
     <div class="card">
-      <div class="eyebrow" data-i18n="eb_token"></div>
+      <a class="eyebrow eyebrow-link" href="https://treg.to" target="_blank" rel="noopener"><span data-i18n="eb_token"></span> ↗</a>
       <h2 data-i18n="token_title"></h2>
       <p class="desc" data-i18n-html="token_desc"></p>
       <div class="tokenrow">
         <input type="password" id="token" placeholder="trg_live_..." autocomplete="off">
         <button class="btn" id="saveToken" data-i18n="save"></button>
         <button class="btn ghost" id="testToken" data-i18n="verify"></button>
+        <a class="btn ghost" href="https://treg.to" target="_blank" rel="noopener" data-i18n="get_token"></a>
       </div>
       <div class="state"><span class="dot" id="tokenDot"></span><span id="tokenState"></span><span class="msg" id="tokenMsg"></span></div>
     </div>
@@ -331,7 +334,7 @@ const I18N = {
     settings_intro: "One Treg token unlocks Reddit, X, LinkedIn and more — no need to sign up for each platform's API.",
     token_title: "Treg token",
     token_desc: 'Get one at <a href="https://treg.to" target="_blank" rel="noopener">treg.to</a>. The token is stored only on this machine in <code>data/config.json</code>, or provide it via the <code>TREG_TOKEN</code> environment variable (takes precedence, never written to disk). Team tokens automatically send <code>X-Treg-Org</code>. Hacker News is free and needs no token.',
-    save: "Save", verify: "Verify", budget_title: "Runs & budget",
+    save: "Save", verify: "Verify", get_token: "Get a token at treg.to ↗", budget_title: "Runs & budget",
     budget_desc: "Cost is taken from Treg's <code>X-Treg-Cost-Micro</code> header. Re-running the same keyword within an hour is an idempotent replay and is not billed again.",
     f_lookback: "Lookback (days)", f_percall: "Per-call cap (USD)", f_perrun: "Per-run budget (USD)", f_schedule: "Auto-run every (hours, 0 = off)", f_minkeep: "Drop leads scoring below",
     tok_env: "Using TREG_TOKEN environment variable", tok_file: "Saved · ", tok_none: "Not set · only free HN will run",
@@ -371,7 +374,7 @@ const I18N = {
     settings_intro: "一个 Treg token 就能调用 Reddit、X、LinkedIn 等数据源，不需要分别注册各平台的接口。",
     token_title: "录入 Token",
     token_desc: '在 <a href="https://treg.to" target="_blank" rel="noopener">treg.to</a> 获取。Token 只保存在本机 <code>data/config.json</code>；也可以用环境变量 <code>TREG_TOKEN</code> 提供（优先级更高，不写入磁盘）。团队 token 会自动带上 <code>X-Treg-Org</code>。Hacker News 免费，不需要 token。',
-    save: "保存", verify: "校验", budget_title: "运行与预算",
+    save: "保存", verify: "校验", get_token: "去 treg.to 获取 Token ↗", budget_title: "运行与预算",
     budget_desc: "花费以 Treg 返回的 <code>X-Treg-Cost-Micro</code> 为准；同一关键词一小时内重复运行会走幂等重放，不重复计费。",
     f_lookback: "回看天数", f_percall: "单次调用上限 (USD)", f_perrun: "单次运行预算 (USD)", f_schedule: "自动运行间隔 (小时，0 = 关闭)", f_minkeep: "低于此分不入库",
     tok_env: "使用环境变量 TREG_TOKEN", tok_file: "已保存 · ", tok_none: "未设置 · 只运行免费的 HN",
