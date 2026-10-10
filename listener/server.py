@@ -14,6 +14,7 @@ from .scoring import score_signal
 from .treg_client import BASE_URL, auth_headers
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
+PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC_TYPES = {".css": "text/css; charset=utf-8", ".woff2": "font/woff2", ".png": "image/png", ".svg": "image/svg+xml"}
 ALLOWED_HOSTS = ("127.0.0.1", "localhost")
 
@@ -86,7 +87,9 @@ def make_handler(app):
                 with open(full, "rb") as f:
                     return self._send(200, f.read(), STATIC_TYPES[ext], {"Cache-Control": "max-age=86400"})
             if u.path == "/api/config":
-                return self._send(200, app.config.public())
+                cfg = app.config.public()
+                cfg["project_dir"] = PROJECT_DIR  # used by the "let an agent set it up" prompt
+                return self._send(200, cfg)
             if u.path == "/api/status":
                 return self._send(200, {"running": app.runner.running, "last_log": app.runner.last_log,
                                         "stats": app.store.stats(), "runs": app.store.recent_runs(10),

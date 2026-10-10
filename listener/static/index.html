@@ -169,6 +169,14 @@
   .foot-bar a:hover { text-decoration:underline; }
   .foot-bar .sep { margin:0 6px; color:var(--muted2); }
 
+  .agentbar { display:flex; align-items:center; gap:16px; flex-wrap:wrap; background:var(--ink); color:#fff; border-radius:var(--r); padding:16px 22px; margin-bottom:16px; }
+  .agentbar-text { display:flex; flex-direction:column; gap:2px; flex:1; min-width:260px; }
+  .agentbar-text b { font:600 15px var(--sans); }
+  .agentbar-text span { font:12.5px var(--mono); color:#b5b5b5; }
+  .agentbar-actions { display:flex; align-items:center; gap:10px; }
+  .agentbar .btn { background:#fff; color:var(--ink); border-color:#fff; }
+  .agentbar .btn:hover { background:var(--mint); border-color:var(--mint); }
+  .agentbar .msg.ok { color:var(--mint); }
   .hidden { display:none !important; }
   @media (max-width: 820px) {
     .nav, main { padding-left:18px; padding-right:18px; }
@@ -241,6 +249,10 @@
       <div><span class="kicker" data-i18n="k_sources"></span><h1 data-i18n="h_sources"></h1>
         <p data-i18n="sources_intro"></p></div>
       <div class="actions"><span class="msg" id="srcMsg"></span><button class="btn" id="saveSources" data-i18n="save_config"></button></div>
+    </div>
+    <div class="agentbar">
+      <div class="agentbar-text"><b data-i18n="agent_title"></b><span data-i18n="agent_desc"></span></div>
+      <div class="agentbar-actions"><span class="msg" id="agentMsg"></span><button class="btn" id="copyPrompt" data-i18n="agent_btn"></button></div>
     </div>
     <div class="card">
       <div class="eyebrow" data-i18n="focus_eb"></div>
@@ -334,6 +346,12 @@ const I18N = {
     intro_src_only: src => `Listening on ${src}. Review and follow up by score.`,
     intro_none: "No listeners enabled yet. Open Listeners to describe who you're looking for and add keywords.",
     list_and: " and ", quote: k => `“${k}”`,
+    agent_title: "Not sure how to configure this? Let an agent do it.",
+    agent_desc: "Copy the prompt and paste it into Claude Code, Codex, Cursor or NewMax. It will interview you and set up keywords and scoring.",
+    agent_btn: "Copy prompt",
+    agent_copied: "Copied — paste it into your agent",
+    agent_failed: "Copy failed — the prompt is selected, press Ctrl+C",
+    agent_prompt: (dir, url) => `Read AGENT_SETUP.md from https://github.com/yangyixxxx/lead-signal-listener (local copy: ${dir}/AGENT_SETUP.md) and help me configure Lead Signal Listener.\n\nIt is already installed at ${dir} and running at ${url}, so skip installation. Check GET ${url}/api/config: if token_source is "none", walk me through getting a Treg token first.\n\nThen start with Step 3: interview me about who I'm looking for, propose a focus sentence, keywords, pages per keyword and scoring rules, write them through the local API, confirm my budget, run a first pass and tune the results with me.`,
     focus_eb: "focus", focus_title: "Who are you looking for?",
     focus_hint: "One sentence describing the people or companies you want to find. It's shown on the Leads page. Leave it empty to describe your listeners automatically.",
     focus_ph: "e.g. B2B SaaS founders whose organic traffic dropped because of AI search",
@@ -381,6 +399,12 @@ const I18N = {
     intro_src_only: src => `正在 ${src} 上监听，按分数逐条审核和跟进。`,
     intro_none: "还没有启用任何数据源。去「监听配置」写下你要找的人，再添加关键词。",
     list_and: "、", quote: k => `「${k}」`,
+    agent_title: "不会配置？让 Agent 帮你完成",
+    agent_desc: "复制提示词，发给 Claude Code、Codex、Cursor 或 NewMax，它会先了解你的需求，再帮你设置关键词和打分规则。",
+    agent_btn: "复制提示词",
+    agent_copied: "已复制，粘贴发给你的 Agent 即可",
+    agent_failed: "复制失败，提示词已选中，请按 Ctrl+C",
+    agent_prompt: (dir, url) => `阅读 https://github.com/yangyixxxx/lead-signal-listener 里的 AGENT_SETUP.md（本地副本：${dir}/AGENT_SETUP.md），帮我配置 Lead Signal Listener。\n\n项目已经安装在 ${dir}，服务正在 ${url} 运行，跳过安装步骤。先请求 GET ${url}/api/config，如果 token_source 是 "none"，先引导我获取并设置 Treg token。\n\n然后从第 3 步开始：了解我要找什么样的人，提出监听目标、关键词、每个关键词抓几页和打分规则，通过本地 API 写入配置，确认我的预算后跑第一轮，再和我一起调优结果。请用中文和我沟通。`,
     focus_eb: "监听目标", focus_title: "你想找什么样的人？",
     focus_hint: "用一句话描述你要找的人或公司，会显示在线索页顶部。留空则根据启用的数据源和关键词自动生成。",
     focus_ph: "例如：自然流量因 AI 搜索下滑的 B2B SaaS 创始人",
@@ -602,6 +626,26 @@ async function searchCatalog() {
 }
 $("catBtn").onclick = searchCatalog;
 $("catQ").onkeydown = e => { if (e.key === "Enter") searchCatalog(); };
+
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); return true; }
+  catch (e) {
+    // Fallback for browsers without the async clipboard API.
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    let ok = false; try { ok = document.execCommand("copy"); } catch (_) {}
+    document.body.removeChild(ta);
+    return ok;
+  }
+}
+$("copyPrompt").onclick = async () => {
+  const dir = (CONFIG && CONFIG.project_dir || "").split(String.fromCharCode(92)).join("/");
+  const text = T("agent_prompt", dir || "lead-signal-listener", location.origin);
+  const ok = await copyText(text);
+  if (!ok) window.prompt(T("agent_failed"), text);
+  flash($("agentMsg"), ok ? T("agent_copied") : T("agent_failed"), ok);
+};
 
 $("saveRules").onclick = async () => {
   let rules; try { rules = JSON.parse($("rules").value); } catch (e) { return flash($("rulesMsg"), T("json_err") + e.message, false); }
