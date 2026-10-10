@@ -8,7 +8,7 @@ Lead Signal Listener 是一个在本地运行的开源线索发现工具。它�
 
 **Built by [newmax.ai](https://newmax.ai)** · **Powered by [treg.to](https://treg.to)**
 
-![线索面板：来自 Reddit、Facebook 群组、X、LinkedIn、Instagram、HN 的痛点信号和招聘信号，按分数排序](docs/screenshot-leads-zh.png)
+![线索面板：来自 Reddit、X 的真实痛点信号和 LinkedIn 招聘信号，按分数排序](docs/screenshot-leads-zh.png)
 
 <details>
 <summary><b>更多截图</b>：监听配置页（Facebook / Instagram、每个关键词抓几页、一键复制 Agent 提示词）</summary>
@@ -17,7 +17,7 @@ Lead Signal Listener 是一个在本地运行的开源线索发现工具。它�
 
 </details>
 
-<sub>截图中的数据均为虚构的演示数据。</sub>
+<sub>线索页截图是默认关键词真实跑出来的结果（284 条线索，Treg 花费 $0.073）；监听配置页截图使用的是演示配置。</sub>
 
 ---
 

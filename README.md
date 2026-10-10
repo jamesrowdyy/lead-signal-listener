@@ -8,7 +8,7 @@ Lead Signal Listener is a local, open-source lead discovery tool. It listens to 
 
 **Built by [newmax.ai](https://newmax.ai)** · **Powered by [treg.to](https://treg.to)**
 
-![Leads dashboard: scored pain signals from Reddit, Facebook groups, X, LinkedIn, Instagram, HN and hiring signals](docs/screenshot-leads.png)
+![Leads dashboard: real pain signals from Reddit, X and LinkedIn hiring signals, scored and ranked](docs/screenshot-leads.png)
 
 <details>
 <summary><b>More screenshots</b>: listeners configuration (Facebook / Instagram, pages per keyword, one-click agent prompt)</summary>
@@ -17,7 +17,7 @@ Lead Signal Listener is a local, open-source lead discovery tool. It listens to 
 
 </details>
 
-<sub>Screenshots use fictional demo data.</sub>
+<sub>The leads screenshot shows real results from one run of the default keywords (284 leads, $0.073 in Treg calls). The listeners screenshot uses a demo configuration.</sub>
 
 ---
 
