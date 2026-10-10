@@ -181,7 +181,7 @@ To check the response shape, run one query with `max_cost_per_run_usd` set low, 
 
 ## Step 9 — Daily workflow to hand over
 
-- Open the **Leads** tab, filter `status = new`, and work from the highest score down.
+- Open the **Leads** tab, filter `status = new`, and work from the highest score down. Leads are stored permanently in `data/signals.db` and de-duplicated, so each run only adds new ones: use **range → New in last run** (or **sort → Newest found**) to see what the latest run added.
 - Mark leads `qualified` / `contacted` / `replied` / `ignored` and add notes.
 - Export CSV/JSON for outreach tools or CRM. The JSON export can be fed to an LLM for deeper qualification or for drafting replies.
 - Push leads found elsewhere into the same queue:
@@ -202,8 +202,8 @@ All endpoints are local only (`127.0.0.1`). Write requests must send `Content-Ty
 | POST | `/api/config` | Partial update |
 | POST | `/api/test-token` | Free token check |
 | POST | `/api/run` | Start a run in the background |
-| GET | `/api/status` | Running state, stats, last log, recent runs |
-| GET | `/api/signals?status=&source=&persona=&min_score=&q=` | List leads |
+| GET | `/api/status` | Running state, stats (incl. `last_run.new`), last log, recent runs |
+| GET | `/api/signals?status=&source=&persona=&min_score=&q=&scope=last_run&sort=score\|recent&limit=&offset=` | List leads (paged; total in the `X-Total-Count` header). `scope=last_run` = only leads first seen in the latest run |
 | POST | `/api/signals/<id>` | `{"status": "...", "note": "..."}` |
 | POST | `/api/import` | Import signals (`{"source": "...", "signals": [...]}` or a bare list) |
 | POST | `/api/rescore` | Re-apply scoring rules to all leads |

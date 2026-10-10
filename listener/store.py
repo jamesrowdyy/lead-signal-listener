@@ -59,8 +59,9 @@ class Store:
             self.db.commit()
         return new
 
-    def list_signals(self, status=None, source=None, persona=None, min_score=0, q=None, limit=200, offset=0):
-        sql, args = "SELECT * FROM signals WHERE score >= ?", [int(min_score or 0)]
+    @staticmethod
+    def _where(status=None, source=None, persona=None, min_score=0, q=None, since=None):
+        sql, args = " WHERE score >= ?", [int(min_score or 0)]
         for col, val in (("status", status), ("source", source), ("persona", persona)):
             if val:
                 sql += f" AND {col} = ?"
@@ -68,11 +69,30 @@ class Store:
         if q:
             sql += " AND (title LIKE ? OR text LIKE ? OR author LIKE ?)"
             args += [f"%{q}%"] * 3
-        sql += " ORDER BY score DESC, first_seen DESC LIMIT ? OFFSET ?"
-        args += [int(limit), int(offset)]
+        if since:
+            sql += " AND first_seen >= ?"
+            args.append(int(since))
+        return sql, args
+
+    def list_signals(self, limit=200, offset=0, sort="score", **filters):
+        where, args = self._where(**filters)
+        # "recent" = newest first by when we first saw the lead; "score" = best leads first.
+        order = " ORDER BY first_seen DESC, score DESC" if sort == "recent" else " ORDER BY score DESC, first_seen DESC"
         with self.lock:
-            rows = self.db.execute(sql, args).fetchall()
+            rows = self.db.execute("SELECT * FROM signals" + where + order + " LIMIT ? OFFSET ?",
+                                   args + [int(limit), int(offset)]).fetchall()
         return [_row(r) for r in rows]
+
+    def count_signals(self, **filters):
+        where, args = self._where(**filters)
+        with self.lock:
+            return self.db.execute("SELECT COUNT(*) FROM signals" + where, args).fetchone()[0]
+
+    def last_run(self):
+        """Most recent run that has finished: {started, new} or None."""
+        with self.lock:
+            r = self.db.execute("SELECT started, new_signals FROM runs ORDER BY id DESC LIMIT 1").fetchone()
+        return {"started": r[0], "new": r[1]} if r else None
 
     def update_signal(self, sid, status=None, note=None):
         if status is not None and status not in STATUSES:
@@ -102,7 +122,8 @@ class Store:
             month_start = int(time.time()) - 30 * 86400
             spent30 = self.db.execute("SELECT COALESCE(SUM(cost_micro),0) FROM runs WHERE started >= ?",
                                       (month_start,)).fetchone()[0]
-        return {"by_status": by_status, "by_source": by_source, "total": sum(by_status.values()),
+        last = self.last_run()
+        return {"by_status": by_status, "by_source": by_source, "total": sum(by_status.values()), "last_run": last,
                 "spent_usd": spent[0] / 1e6, "spent_30d_usd": spent30 / 1e6, "calls": spent[1]}
 
     def add_run(self, started, finished, new_signals, fetched, cost_micro, calls, log):

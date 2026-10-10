@@ -65,8 +65,12 @@ def make_handler(app):
 
         def _filters(self, qs):
             g = lambda k: (qs.get(k) or [None])[0]
+            since = None
+            if g("scope") == "last_run":  # only leads first seen in the most recent run
+                last = app.store.last_run()
+                since = last["started"] if last else int(time.time()) + 1
             return {"status": g("status"), "source": g("source"), "persona": g("persona"),
-                    "min_score": g("min_score") or 0, "q": g("q")}
+                    "min_score": g("min_score") or 0, "q": g("q"), "since": since}
 
         # ---- routes ----
         def do_GET(self):
@@ -96,9 +100,12 @@ def make_handler(app):
                                         "next_run": app.next_run})
             if u.path == "/api/signals":
                 f = self._filters(qs)
-                limit = int((qs.get("limit") or [200])[0])
-                offset = int((qs.get("offset") or [0])[0])
-                return self._send(200, app.store.list_signals(limit=limit, offset=offset, **f))
+                limit = max(1, min(500, int((qs.get("limit") or [200])[0])))
+                offset = max(0, int((qs.get("offset") or [0])[0]))
+                sort = (qs.get("sort") or ["score"])[0]
+                rows = app.store.list_signals(limit=limit, offset=offset, sort=sort, **f)
+                # Body stays a plain list for compatibility; the total for paging rides in a header.
+                return self._send(200, rows, extra={"X-Total-Count": str(app.store.count_signals(**f))})
             if u.path == "/api/catalog":
                 q = (qs.get("q") or [""])[0]
                 if not q:
@@ -109,7 +116,7 @@ def make_handler(app):
                     return self._send(502, {"error": f"catalog search failed: {e}"})
             if u.path == "/api/export":
                 fmt = (qs.get("fmt") or ["csv"])[0]
-                body = app.store.export(fmt, **self._filters(qs))
+                body = app.store.export(fmt, sort=(qs.get("sort") or ["score"])[0], **self._filters(qs))
                 ctype = "application/json; charset=utf-8" if fmt == "json" else "text/csv; charset=utf-8"
                 name = time.strftime("signals-%Y%m%d-%H%M") + (".json" if fmt == "json" else ".csv")
                 return self._send(200, body.encode("utf-8"), ctype,
