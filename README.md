@@ -121,7 +121,7 @@ TREG_TOKEN=... python app.py                # token from env, never written to d
 
 The server listens on `127.0.0.1` only. Write requests must send `Content-Type: application/json`.
 
-`GET /api/config` · `POST /api/config` · `POST /api/test-token` · `POST /api/run` · `GET /api/status` · `GET /api/signals` · `POST /api/signals/<id>` · `POST /api/import` · `POST /api/rescore` · `GET /api/catalog?q=` · `GET /api/export?fmt=csv|json`
+`GET /api/config` · `POST /api/config` · `POST /api/test-token` · `POST /api/run` · `GET /api/status` · `GET /api/signals` · `GET /api/signals/counts` · `POST /api/signals/<id>` · `POST /api/import` · `POST /api/rescore` · `GET /api/catalog?q=` · `GET /api/export?fmt=csv|json`
 
 See [AGENT_SETUP.md](AGENT_SETUP.md#api-reference) for details.
 

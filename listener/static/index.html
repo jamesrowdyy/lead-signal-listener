@@ -181,6 +181,29 @@
   .pager { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:12px; }
   .pager .count { margin-top:0; }
   .hidden { display:none !important; }
+  /* status board */
+  .board { display:grid; grid-template-columns:repeat(6, minmax(0, 1fr)); gap:8px; margin-bottom:16px; }
+  .board button { text-align:left; border:1px solid var(--line); border-radius:14px; background:var(--surface); padding:12px 14px; cursor:pointer; color:var(--ink); transition:all .15s var(--ease); }
+  .board button:hover { border-color:var(--line2); box-shadow:var(--shadow-sm); }
+  .board button b { display:block; font:400 24px/1.1 var(--display); }
+  .board button span { display:flex; align-items:center; gap:6px; font:12px var(--mono); color:var(--muted); margin-top:4px; }
+  .board button span::before { content:""; width:6px; height:6px; border-radius:50%; background:var(--c, var(--muted2)); }
+  .board .b-new { --c:#1a1a1a; } .board .b-qualified { --c:var(--green); } .board .b-contacted { --c:#0a66c2; } .board .b-replied { --c:#e1306c; } .board .b-ignored { --c:#c2c2c2; }
+  .board button[aria-pressed=true] { background:var(--ink); border-color:var(--ink); color:#fff; }
+  .board button[aria-pressed=true] span { color:#b5b5b5; }
+  .board button[aria-pressed=true].b-new span::before { background:#fff; }
+  /* note button + modal */
+  .notebtn { text-align:left; font:12.5px var(--sans); padding:6px 10px; border:1px dashed var(--line2); border-radius:10px; background:transparent; color:var(--muted); cursor:pointer; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; transition:all .15s var(--ease); }
+  .notebtn:hover { border-color:var(--ink); color:var(--ink); }
+  .notebtn.has { border-style:solid; background:var(--amber-soft); border-color:transparent; color:#5c4210; }
+  .modal { position:fixed; inset:0; background:rgba(20,20,20,.38); display:flex; align-items:center; justify-content:center; z-index:50; padding:20px; }
+  .modal-box { width:min(520px, 100%); background:var(--surface); border-radius:var(--r); box-shadow:var(--shadow-lg); padding:20px 22px; }
+  .modal-box h2 { font:600 15px var(--sans); margin:0 0 4px; }
+  .modal-box .ctx { font:12px var(--mono); color:var(--muted); margin:0 0 12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .modal-box textarea { min-height:140px; font:13.5px/1.6 var(--sans); }
+  .modal-foot { display:flex; align-items:center; gap:10px; margin-top:14px; }
+  .modal-foot .hint { font:11.5px var(--mono); color:var(--muted); margin-right:auto; }
+  @media (max-width: 820px) { .board { grid-template-columns:repeat(3, minmax(0, 1fr)); } }
   @media (max-width: 820px) {
     .nav, main { padding-left:18px; padding-right:18px; }
     .nav { flex-wrap:wrap; }
@@ -226,15 +249,10 @@
       <pre id="log"></pre>
     </details>
 
+    <div class="board" id="board"></div>
+
     <div class="card">
       <div class="filters">
-        <div><label data-i18n="lb_status"></label><select id="fStatus">
-          <option value="" data-i18n="all"></option>
-          <option value="new" selected data-i18n="st_new"></option>
-          <option value="qualified" data-i18n="st_qualified"></option>
-          <option value="contacted" data-i18n="st_contacted"></option>
-          <option value="replied" data-i18n="st_replied"></option>
-          <option value="ignored" data-i18n="st_ignored"></option></select></div>
         <div><label data-i18n="lb_source"></label><select id="fSource"><option value="" data-i18n="all"></option><option>reddit</option><option>x</option><option>hn</option><option>linkedin</option><option>linkedin_jobs</option><option>funding</option></select></div>
         <div><label data-i18n="lb_persona"></label><select id="fPersona"><option value="" data-i18n="all"></option><option>saas</option><option>dtc</option><option>other</option></select></div>
         <div><label data-i18n="lb_scope"></label><select id="fScope"><option value="" data-i18n="scope_all"></option><option value="last_run" data-i18n="scope_last"></option></select></div>
@@ -333,6 +351,16 @@
   </section>
 </main>
 
+<div class="modal hidden" id="noteModal" role="dialog" aria-modal="true" aria-labelledby="noteTitle">
+  <div class="modal-box">
+    <h2 id="noteTitle" data-i18n="note_title"></h2>
+    <p class="ctx" id="noteCtx"></p>
+    <textarea id="noteText"></textarea>
+    <div class="modal-foot"><span class="hint" data-i18n="note_hint"></span><span class="msg" id="noteMsg"></span>
+      <button class="btn ghost" id="noteCancel" data-i18n="note_cancel"></button><button class="btn" id="noteSave" data-i18n="note_save"></button></div>
+  </div>
+</div>
+
 <footer class="foot-bar">
   <span>Lead Signal Listener · <span data-i18n="oss"></span></span>
   <span class="credits">
@@ -385,7 +413,7 @@ const I18N = {
     count: (n, t) => `${n} of ${t} signals`, more: "Load more",
     lb_scope: "range", scope_all: "All leads", scope_last: "New in last run",
     lb_sort: "sort", sort_score: "Score", sort_recent: "Newest found",
-    s_last: "new last run", new_badge: "NEW", seen: x => `found ${x}`, expand: "Click to expand", note_ph: "Note",
+    s_last: "new last run", new_badge: "NEW", seen: x => `found ${x}`, expand: "Click to expand", note_ph: "Note", note_add: "+ Add note", note_title: "Note", note_save: "Save", note_cancel: "Cancel", note_hint: "Ctrl+Enter to save · Esc to close", b_all: "All", s_ignored: "Ignored",
     empty_t: "No signals yet", empty_d: "Add your Treg token in Settings, then click Run now.",
     s_new: "To review", s_total: "Total leads", s_qualified: "Qualified", s_contacted: "Contacted", s_replied: "Replied", s_spent: "Spent (30d)", s_calls: "Treg calls",
     running: "running…", next_run: "next run · ",
@@ -444,7 +472,7 @@ const I18N = {
     count: (n, t) => `显示 ${n} / 共 ${t} 条`, more: "加载更多",
     lb_scope: "范围", scope_all: "全部线索", scope_last: "只看本次新增",
     lb_sort: "排序", sort_score: "按分数", sort_recent: "最新入库",
-    s_last: "本次新增", new_badge: "新", seen: x => `入库 ${x}`, expand: "点击展开", note_ph: "备注",
+    s_last: "本次新增", new_badge: "新", seen: x => `入库 ${x}`, expand: "点击展开", note_ph: "备注", note_add: "+ 添加备注", note_title: "备注", note_save: "保存", note_cancel: "取消", note_hint: "Ctrl+Enter 保存 · Esc 关闭", b_all: "全部", s_ignored: "已忽略",
     empty_t: "暂无线索", empty_d: "先在「设置」里录入 Treg token，再点「立即运行」。",
     s_new: "待处理", s_total: "线索总数", s_qualified: "合格", s_contacted: "已联系", s_replied: "已回复", s_spent: "近 30 天花费", s_calls: "Treg 调用",
     running: "运行中…", next_run: "下次运行 · ",
@@ -509,7 +537,7 @@ document.querySelectorAll(".lang button").forEach(b => b.onclick = async () => {
   localStorage.setItem("sl_lang", LANG);
   applyI18n();
   // Re-render everything from cache first, so the page switches fully even if the server is unreachable.
-  renderConfig(); renderRows(); renderStatus();
+  renderConfig(); renderRows(); renderStatus(); renderBoard();
   // Server-side run logs and messages follow the UI language.
   await api("/api/config", {method: "POST", body: JSON.stringify({lang: LANG})}).catch(() => {});
   loadConfig().catch(() => {}); loadSignals().catch(() => {}); loadStatus().catch(() => {});
@@ -684,9 +712,11 @@ $("rescore").onclick = async () => {
   catch (e) { flash($("rulesMsg"), e.message, false); }
 };
 
+let STATUS_FILTER = "new", COUNTS = null;
 function filterQS() {
   const p = new URLSearchParams();
-  [["status","fStatus"],["source","fSource"],["persona","fPersona"],["scope","fScope"],["sort","fSort"],["min_score","fMin"],["q","fQ"]].forEach(([k,id]) => { const v = $(id).value.trim(); if (v) p.set(k, v); });
+  if (STATUS_FILTER) p.set("status", STATUS_FILTER);
+  [["source","fSource"],["persona","fPersona"],["scope","fScope"],["sort","fSort"],["min_score","fMin"],["q","fQ"]].forEach(([k,id]) => { const v = $(id).value.trim(); if (v) p.set(k, v); });
   return p.toString();
 }
 function ago(ts) {
@@ -713,13 +743,63 @@ function rowHtml(r) {
       <div class="side">
         <div class="who">${r.author_url ? `<a href="${safeUrl(r.author_url)}" target="_blank" rel="noopener noreferrer">${esc(r.author || "—")}</a>` : esc(r.author || "—")}</div>
         <select data-id="${r.id}" class="st">${["new","qualified","contacted","replied","ignored"].map(s => `<option value="${s}" ${s===r.status?"selected":""}>${T("st_" + s)}</option>`).join("")}</select>
-        <input class="noteinput" data-id="${r.id}" value="${esc(r.note)}" placeholder="${T("note_ph")}">
+        <button class="notebtn${r.note ? " has" : ""}" data-id="${r.id}" title="${esc(r.note || T("note_add"))}">${r.note ? "✎ " + esc(r.note) : T("note_add")}</button>
       </div></div>`;
 }
 function bindRows() {
   document.querySelectorAll(".snippet").forEach(s => s.onclick = () => s.classList.toggle("open"));
-  document.querySelectorAll("select.st").forEach(s => s.onchange = () => api(`/api/signals/${s.dataset.id}`, {method: "POST", body: JSON.stringify({status: s.value})}).then(loadStatus));
-  document.querySelectorAll("input.noteinput").forEach(i => i.onchange = () => api(`/api/signals/${i.dataset.id}`, {method: "POST", body: JSON.stringify({note: i.value})}));
+  document.querySelectorAll("select.st").forEach(s => s.onchange = () => {
+    const r = ROWS.find(x => x.id == s.dataset.id);
+    api(`/api/signals/${s.dataset.id}`, {method: "POST", body: JSON.stringify({status: s.value})})
+      .then(() => { if (r) r.status = s.value; loadCounts(); loadStatus(); });
+  });
+  document.querySelectorAll("button.notebtn").forEach(b => b.onclick = () => openNote(+b.dataset.id));
+}
+
+// ---- note modal
+let NOTE_ID = null;
+function openNote(id) {
+  const r = ROWS.find(x => x.id === id); if (!r) return;
+  NOTE_ID = id;
+  $("noteCtx").textContent = `${r.source} · ${r.author || "—"} · ${r.title || r.text || ""}`;
+  $("noteText").value = r.note || "";
+  $("noteMsg").textContent = "";
+  $("noteModal").classList.remove("hidden");
+  setTimeout(() => $("noteText").focus(), 0);
+}
+function closeNote() { $("noteModal").classList.add("hidden"); NOTE_ID = null; }
+async function saveNote() {
+  if (NOTE_ID === null) return;
+  const note = $("noteText").value.trim(), id = NOTE_ID;
+  try {
+    await api(`/api/signals/${id}`, {method: "POST", body: JSON.stringify({note})});
+    const r = ROWS.find(x => x.id === id); if (r) r.note = note;
+    closeNote(); renderRows();
+  } catch (e) { flash($("noteMsg"), e.message, false); }
+}
+$("noteSave").onclick = saveNote;
+$("noteCancel").onclick = closeNote;
+$("noteModal").onclick = e => { if (e.target === $("noteModal")) closeNote(); };
+document.addEventListener("keydown", e => {
+  if ($("noteModal").classList.contains("hidden")) return;
+  if (e.key === "Escape") closeNote();
+  else if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) saveNote();
+});
+
+// ---- status board: counts follow every filter except status; click to switch the list
+const BOARD = [["", "b_all"], ["new", "s_new"], ["qualified", "s_qualified"], ["contacted", "s_contacted"], ["replied", "s_replied"], ["ignored", "s_ignored"]];
+async function loadCounts() {
+  const p = new URLSearchParams(filterQS()); p.delete("status");
+  COUNTS = await api("/api/signals/counts?" + p.toString());
+  renderBoard();
+}
+function renderBoard() {
+  const c = COUNTS || {by_status: {}, total: 0};
+  $("board").innerHTML = BOARD.map(([s, k]) => `<button class="b-${s || "all"}" data-s="${s}" aria-pressed="${s === STATUS_FILTER}">
+    <b>${s ? (c.by_status[s] || 0) : c.total}</b><span>${T(k)}</span></button>`).join("");
+  $("board").querySelectorAll("button").forEach(b => b.onclick = () => {
+    STATUS_FILTER = b.dataset.s; renderBoard(); loadSignals();
+  });
 }
 async function loadSignals(append = false) {
   if (append !== true) SHOWN = 0;
@@ -730,6 +810,7 @@ async function loadSignals(append = false) {
   $("exportCsv").href = "/api/export?fmt=csv&" + qs;
   $("exportJson").href = "/api/export?fmt=json&" + qs;
   ROWS = append === true ? ROWS.concat(rows) : rows;
+  if (append !== true) loadCounts().catch(() => {});
   SHOWN = ROWS.length;
   renderRows();
 }
@@ -762,10 +843,10 @@ async function loadStatus() {
 }
 function renderStatus() {
   if (!STATUS) return;
-  const s = STATUS, st = s.stats, bs = st.by_status || {};
+  const s = STATUS, st = s.stats;
   $("stats").innerHTML = [
-    ["s_new", bs.new || 0, true], ["s_last", st.last_run ? st.last_run.new : 0], ["s_total", st.total], ["s_qualified", bs.qualified || 0], ["s_contacted", bs.contacted || 0],
-    ["s_replied", bs.replied || 0], ["s_spent", "$" + st.spent_30d_usd.toFixed(3)], ["s_calls", st.calls]
+    // Per-status counts live in the status board below.
+    ["s_last", st.last_run ? st.last_run.new : 0, true], ["s_total", st.total], ["s_spent", "$" + st.spent_30d_usd.toFixed(3)], ["s_calls", st.calls]
   ].map(([k, v, a]) => `<div class="stat${a ? " accent" : ""}"><b>${v}</b><span>${T(k)}</span></div>`).join("");
   $("runBtn").disabled = s.running;
   $("runState").textContent = s.running ? T("running") : (s.next_run ? T("next_run") + new Date(s.next_run * 1000).toLocaleString(LANG === "zh" ? "zh-CN" : "en-US") : "python app.py --run-once");
@@ -777,7 +858,7 @@ $("runBtn").onclick = async () => {
   catch (e) { alert(e.message); }
 };
 $("refreshBtn").onclick = () => loadSignals();
-["fStatus","fSource","fPersona","fScope","fSort"].forEach(id => $(id).onchange = () => loadSignals());
+["fSource","fPersona","fScope","fSort"].forEach(id => $(id).onchange = () => loadSignals());
 $("moreBtn").onclick = () => loadSignals(true);
 $("fQ").onkeydown = e => { if (e.key === "Enter") loadSignals(); };
 

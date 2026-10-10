@@ -39,6 +39,13 @@ class StoreQueryTests(unittest.TestCase):
         self.assertEqual(self.st.count_signals(min_score=20), 3)
         self.assertEqual(self.st.count_signals(since=last["started"], min_score=40), 1)
 
+    def test_count_by_status_ignores_status_filter(self):
+        ids = {r["external_id"]: r["id"] for r in self.st.list_signals()}
+        self.st.update_signal(ids["1"], status="qualified")
+        self.st.update_signal(ids["3"], status="replied")
+        counts = self.st.count_by_status(status="new", min_score=20)
+        self.assertEqual(counts, {"new": 1, "qualified": 1, "contacted": 0, "replied": 1, "ignored": 0})
+
     def test_paging(self):
         page1 = self.st.list_signals(limit=2, offset=0)
         page2 = self.st.list_signals(limit=2, offset=2)

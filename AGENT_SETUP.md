@@ -204,6 +204,7 @@ All endpoints are local only (`127.0.0.1`). Write requests must send `Content-Ty
 | POST | `/api/run` | Start a run in the background |
 | GET | `/api/status` | Running state, stats (incl. `last_run.new`), last log, recent runs |
 | GET | `/api/signals?status=&source=&persona=&min_score=&q=&scope=last_run&sort=score\|recent&limit=&offset=` | List leads (paged; total in the `X-Total-Count` header). `scope=last_run` = only leads first seen in the latest run |
+| GET | `/api/signals/counts?<same filters>` | Lead counts per status under the other filters: `{"by_status": {...}, "total": N}` |
 | POST | `/api/signals/<id>` | `{"status": "...", "note": "..."}` |
 | POST | `/api/import` | Import signals (`{"source": "...", "signals": [...]}` or a bare list) |
 | POST | `/api/rescore` | Re-apply scoring rules to all leads |

@@ -88,6 +88,16 @@ class Store:
         with self.lock:
             return self.db.execute("SELECT COUNT(*) FROM signals" + where, args).fetchone()[0]
 
+    def count_by_status(self, **filters):
+        """Lead counts per status under the other filters (the status filter itself is ignored)."""
+        filters.pop("status", None)
+        where, args = self._where(**filters)
+        with self.lock:
+            rows = self.db.execute("SELECT status, COUNT(*) FROM signals" + where + " GROUP BY status", args).fetchall()
+        counts = {s: 0 for s in STATUSES}
+        counts.update({r[0]: r[1] for r in rows if r[0] in counts})
+        return counts
+
     def last_run(self):
         """Most recent run that has finished: {started, new} or None."""
         with self.lock:

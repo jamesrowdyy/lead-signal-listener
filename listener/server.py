@@ -106,6 +106,9 @@ def make_handler(app):
                 rows = app.store.list_signals(limit=limit, offset=offset, sort=sort, **f)
                 # Body stays a plain list for compatibility; the total for paging rides in a header.
                 return self._send(200, rows, extra={"X-Total-Count": str(app.store.count_signals(**f))})
+            if u.path == "/api/signals/counts":
+                counts = app.store.count_by_status(**self._filters(qs))
+                return self._send(200, {"by_status": counts, "total": sum(counts.values())})
             if u.path == "/api/catalog":
                 q = (qs.get("q") or [""])[0]
                 if not q:
