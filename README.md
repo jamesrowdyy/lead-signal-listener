@@ -17,7 +17,7 @@ Lead Signal Listener is a local, open-source lead discovery tool. It listens to 
 
 </details>
 
-<sub>The leads screenshot shows real results from one run of the default keywords (284 leads, $0.073 in Treg calls). The listeners screenshot uses a demo configuration.</sub>
+<sub>The leads screenshot shows real results from one run of the default keywords (284 leads, $0.073 in Treg calls), with personal usernames blurred. The listeners screenshot uses a demo configuration.</sub>
 
 ---
 
