@@ -508,9 +508,11 @@ document.querySelectorAll(".lang button").forEach(b => b.onclick = async () => {
   LANG = b.dataset.lang;
   localStorage.setItem("sl_lang", LANG);
   applyI18n();
+  // Re-render everything from cache first, so the page switches fully even if the server is unreachable.
+  renderConfig(); renderRows(); renderStatus();
   // Server-side run logs and messages follow the UI language.
   await api("/api/config", {method: "POST", body: JSON.stringify({lang: LANG})}).catch(() => {});
-  await loadConfig(); loadSignals(); loadStatus();
+  loadConfig().catch(() => {}); loadSignals().catch(() => {}); loadStatus().catch(() => {});
 });
 
 // Listeners that will actually run: free ones always, paid ones only with a token.
@@ -552,6 +554,10 @@ function renderIntro(active) {
 
 async function loadConfig() {
   CONFIG = await api("/api/config");
+  renderConfig();
+}
+function renderConfig() {
+  if (!CONFIG) return;
   $("token").value = "";
   $("token").placeholder = CONFIG.treg_token && CONFIG.treg_token !== "set" ? CONFIG.treg_token : "trg_live_...";
   $("tokenState").textContent = {env: T("tok_env"), file: T("tok_file") + CONFIG.treg_token, none: T("tok_none")}[CONFIG.token_source];
@@ -689,7 +695,7 @@ function ago(ts) {
   return d < 1 ? T("ago_h", Math.max(1, Math.round(d * 24))) : T("ago_d", Math.round(d));
 }
 const PAGE = 50;
-let SHOWN = 0, TOTAL = 0, LAST_RUN = null;
+let SHOWN = 0, TOTAL = 0, LAST_RUN = null, ROWS = [];
 // A lead is "new" if it was first seen during the most recent run.
 const isNew = r => !!(LAST_RUN && r.first_seen >= LAST_RUN.started);
 function rowHtml(r) {
@@ -723,10 +729,13 @@ async function loadSignals(append = false) {
   TOTAL = +(res.headers.get("X-Total-Count") || rows.length);
   $("exportCsv").href = "/api/export?fmt=csv&" + qs;
   $("exportJson").href = "/api/export?fmt=json&" + qs;
-  const html = rows.map(rowHtml).join("");
-  if (append === true) $("rows").insertAdjacentHTML("beforeend", html);
-  else $("rows").innerHTML = html || `<div class="empty"><b>${T("empty_t")}</b>${T("empty_d")}</div>`;
-  SHOWN += rows.length;
+  ROWS = append === true ? ROWS.concat(rows) : rows;
+  SHOWN = ROWS.length;
+  renderRows();
+}
+// Rendering only uses cached data, so a language switch never depends on the server.
+function renderRows() {
+  $("rows").innerHTML = ROWS.map(rowHtml).join("") || `<div class="empty"><b>${T("empty_t")}</b>${T("empty_d")}</div>`;
   $("countInfo").textContent = TOTAL ? T("count", SHOWN, TOTAL) : "";
   $("moreBtn").classList.toggle("hidden", SHOWN >= TOTAL);
   bindRows();
@@ -742,9 +751,18 @@ function renderLog(text) {
 }
 
 let wasRunning = false;
+let STATUS = null;
 async function loadStatus() {
-  const s = await api("/api/status");
-  const st = s.stats, bs = st.by_status || {};
+  const s = STATUS = await api("/api/status");
+  renderStatus();
+  const prevRun = LAST_RUN && LAST_RUN.started;
+  LAST_RUN = s.stats.last_run || null;
+  if ((wasRunning && !s.running) || (prevRun && LAST_RUN && LAST_RUN.started !== prevRun)) loadSignals();
+  wasRunning = s.running;
+}
+function renderStatus() {
+  if (!STATUS) return;
+  const s = STATUS, st = s.stats, bs = st.by_status || {};
   $("stats").innerHTML = [
     ["s_new", bs.new || 0, true], ["s_last", st.last_run ? st.last_run.new : 0], ["s_total", st.total], ["s_qualified", bs.qualified || 0], ["s_contacted", bs.contacted || 0],
     ["s_replied", bs.replied || 0], ["s_spent", "$" + st.spent_30d_usd.toFixed(3)], ["s_calls", st.calls]
@@ -753,10 +771,6 @@ async function loadStatus() {
   $("runState").textContent = s.running ? T("running") : (s.next_run ? T("next_run") + new Date(s.next_run * 1000).toLocaleString(LANG === "zh" ? "zh-CN" : "en-US") : "python app.py --run-once");
   if (s.last_log && s.last_log.length) renderLog(s.last_log.join("\n"));
   else renderLog(s.runs && s.runs[0] ? s.runs[0].log : "");
-  const prevRun = LAST_RUN && LAST_RUN.started;
-  LAST_RUN = st.last_run || null;
-  if ((wasRunning && !s.running) || (prevRun && LAST_RUN && LAST_RUN.started !== prevRun)) loadSignals();
-  wasRunning = s.running;
 }
 $("runBtn").onclick = async () => {
   try { await api("/api/run", {method: "POST", body: "{}"}); wasRunning = true; $("termBox").open = true; loadStatus(); }
