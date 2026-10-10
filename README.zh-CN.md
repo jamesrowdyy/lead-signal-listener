@@ -2,7 +2,7 @@
 
 **在潜在客户找到你的竞争对手之前，先找到那些正在公开描述你能解决的问题的人。**
 
-Lead Signal Listener 是一个在本地运行的开源线索发现工具。它监听 Reddit、X、LinkedIn、Hacker News、YouTube、新闻、RSS 订阅，以及 [Treg](https://treg.to) 目录里 3800 多个端点中的任意一个，同时捕捉招聘、融资这类触发信号。每条线索都会自动打分、去重并进入待处理队列，你可以从分数最高的开始处理。
+Lead Signal Listener 是一个在本地运行的开源线索发现工具。它监听 Reddit、X、LinkedIn、Facebook、Instagram、Hacker News、YouTube、新闻、RSS 订阅，以及 [Treg](https://treg.to) 目录里 3800 多个端点中的任意一个，同时捕捉招聘、融资这类触发信号。每条线索都会自动打分、去重并进入待处理队列，你可以从分数最高的开始处理。
 
 [English](README.md) · [Agent 初始化说明](AGENT_SETUP.md)
 
@@ -54,7 +54,7 @@ python app.py            # 打开 http://127.0.0.1:8787（Windows 可双击 star
 
 | 方式 | 例子 | 费用 |
 |---|---|---|
-| **内置数据源** | Reddit、X、LinkedIn 帖子、LinkedIn 招聘（招聘信号）、融资新闻 | 通过 Treg 按次付费，约 $0.0005–0.015/次 |
+| **内置数据源** | Reddit、X、LinkedIn 帖子、LinkedIn 招聘（招聘信号）、Facebook 帖子、Facebook 群组、Instagram 话题标签、Instagram Reels、融资新闻 | 通过 Treg 按次付费，约 $0.0005–0.03/次 |
 | **Hacker News** | 按关键词搜帖子和评论（Algolia API） | 免费 |
 | **RSS / Atom** | Google Alerts、`reddit.com/r/名称/new/.rss`、`hnrss.org/newest?q=...`、博客、招聘板，可加关键词过滤 | 免费 |
 | **任意 Treg 端点** | YouTube、TikTok、Google 新闻、评论等，配置参数模板，字段映射可选 | 通过 Treg 付费 |
@@ -76,6 +76,10 @@ python app.py --catalog "youtube search videos"
 | X | 痛点 | `treg.x.search.posts`（路由，最便宜的优先） | $0.00075–0.015/次 |
 | LinkedIn 帖子 | 痛点 | `anyapi.linkedin.search.posts` | $0.002/次 |
 | LinkedIn 招聘 | 招聘 | `anyapi.linkedin.search.jobs` | $0.0005/次 |
+| Facebook 帖子 | 痛点 | `justoneapi.x.facebook-search-post-v1` | $0.03/次 |
+| Facebook 群组 | 痛点 | `anyapi.facebook.group.posts`（每行一个公开群组链接） | $0.002/次 |
+| Instagram 话题标签 | 痛点 | `anyapi.instagram.hashtag.posts`（话题标签不带 `#`） | $0.002/次 |
+| Instagram Reels | 痛点 | `anyapi.instagram.search.reels` | $0.0015/次 |
 | 融资 | 融资 | `getleadsio.companies.funding.feed` | 按返回条数计费 |
 
 单价取自 2026 年 10 月的 Treg 目录，以响应头 `X-Treg-Cost-Micro` 为准。每个关键词每次运行最多抓 `max_pages` 页（Reddit、X 默认 3 页，LinkedIn 默认 2 页；每页一次调用）。按默认配置跑一次大约 50 次调用，约 **$0.07**。

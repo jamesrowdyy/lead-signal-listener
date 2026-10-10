@@ -371,7 +371,10 @@ const I18N = {
     tok_env: "Using TREG_TOKEN environment variable", tok_file: "Saved · ", tok_none: "Not set · only free HN will run",
     kicker: (n, d) => `${n} sources live · ${d}d lookback`,
     keywords: "keywords", pages_label: "pages per keyword (each page is one paid call)", location: "location", region: "region", funding_note: "Funding events from US / EU news. No keywords needed.",
-    src_linkedin_posts: "LinkedIn posts", src_linkedin_jobs: "LinkedIn hiring signals", src_funding: "Funding signals",
+    src_linkedin_posts: "LinkedIn posts",
+    src_facebook_posts: "Facebook posts", src_facebook_groups: "Facebook groups",
+    src_instagram_hashtags: "Instagram hashtags", src_instagram_reels: "Instagram Reels",
+    lbl_group_urls: "public group URLs · one per line", lbl_hashtags: "hashtags without # · one per line", src_linkedin_jobs: "LinkedIn hiring signals", src_funding: "Funding signals",
     saved: "Saved", enter_token: "Please enter a token", verifying: "Verifying…", rules_saved: "Rules saved",
     json_err: "Invalid JSON: ", rescored: n => `Rescored ${n} leads`,
     count: n => `${n} signals · sorted by score · max 200`, expand: "Click to expand", note_ph: "Note",
@@ -424,7 +427,10 @@ const I18N = {
     tok_env: "使用环境变量 TREG_TOKEN", tok_file: "已保存 · ", tok_none: "未设置 · 只运行免费的 HN",
     kicker: (n, d) => `${n} 个数据源启用 · 回看 ${d} 天`,
     keywords: "关键词", pages_label: "每个关键词抓几页（每页一次付费调用）", location: "地区", region: "地区", funding_note: "抓取美国 / 欧洲新闻里的融资事件，不需要关键词。",
-    src_linkedin_posts: "LinkedIn 帖子", src_linkedin_jobs: "LinkedIn 招聘信号", src_funding: "融资信号",
+    src_linkedin_posts: "LinkedIn 帖子",
+    src_facebook_posts: "Facebook 帖子", src_facebook_groups: "Facebook 群组",
+    src_instagram_hashtags: "Instagram 话题标签", src_instagram_reels: "Instagram Reels",
+    lbl_group_urls: "公开群组链接 · 每行一个", lbl_hashtags: "话题标签（不带 #）· 每行一个", src_linkedin_jobs: "LinkedIn 招聘信号", src_funding: "融资信号",
     saved: "已保存", enter_token: "请输入 token", verifying: "校验中…", rules_saved: "规则已保存",
     json_err: "JSON 格式错误：", rescored: n => `已重新打分 ${n} 条`,
     count: n => `共 ${n} 条 · 按分数排序 · 最多 200 条`, expand: "点击展开", note_ph: "备注",
@@ -456,6 +462,10 @@ const SRC_META = {
   linkedin_posts: {name: () => T("src_linkedin_posts"), cost: () => "≈ $0.002 " + T("per_call")},
   linkedin_jobs: {name: () => T("src_linkedin_jobs"), cost: () => "≈ $0.0005 " + T("per_call")},
   funding: {name: () => T("src_funding"), cost: () => T("per_result")},
+  facebook_posts: {name: () => T("src_facebook_posts"), cost: () => "≈ $0.03 " + T("per_call")},
+  facebook_groups: {name: () => T("src_facebook_groups"), cost: () => "≈ $0.002 " + T("per_call"), label: () => T("lbl_group_urls")},
+  instagram_hashtags: {name: () => T("src_instagram_hashtags"), cost: () => "≈ $0.002 " + T("per_call"), label: () => T("lbl_hashtags")},
+  instagram_reels: {name: () => T("src_instagram_reels"), cost: () => "≈ $0.0015 " + T("per_call")},
 };
 let CONFIG = null;
 const $ = id => document.getElementById(id);
@@ -549,15 +559,15 @@ async function loadConfig() {
   $("rssKeywords").value = (rss.keywords || []).join("\n");
   $("customSources").value = JSON.stringify(CONFIG.custom_sources || [], null, 2);
   const fs = $("fSource"), cur = fs.value;
-  const names = ["reddit", "x", "hn", "linkedin", "linkedin_jobs", "funding", "rss", ...(CONFIG.custom_sources || []).map(c => c.name).filter(Boolean)];
+  const names = ["reddit", "x", "hn", "linkedin", "linkedin_jobs", "facebook", "facebook_group", "instagram", "instagram_reels", "funding", "rss", ...(CONFIG.custom_sources || []).map(c => c.name).filter(Boolean)];
   fs.innerHTML = `<option value="">${T("all")}</option>` + [...new Set(names)].map(n => `<option ${n === cur ? "selected" : ""}>${esc(n)}</option>`).join("");
   const grid = $("srcGrid"); grid.innerHTML = "";
   for (const [key, meta] of Object.entries(SRC_META)) {
     const s = CONFIG.sources[key] || {};
     const extra = key === "linkedin_jobs" ? `<label style="margin-top:12px">${T("location")}</label><input type="text" data-loc="${key}" value="${esc(s.location || "United States")}" style="width:100%">`
                 : key === "funding" ? `<label>${T("region")}</label><select data-region="${key}">${["US","EU","GLOBAL"].map(r => `<option ${s.region===r?"selected":""}>${r}</option>`).join("")}</select><p class="note">${T("funding_note")}</p>` : "";
-    const queries = key === "funding" ? "" : `<label>${T("keywords")} · ${(s.queries || []).length}</label><textarea data-q="${key}">${esc((s.queries || []).join("\n"))}</textarea>`;
-    const paged = ["reddit", "x", "linkedin_posts", "linkedin_jobs"].includes(key);
+    const queries = key === "funding" ? "" : `<label>${meta.label ? meta.label() : T("keywords")} · ${(s.queries || []).length}</label><textarea data-q="${key}">${esc((s.queries || []).join("\n"))}</textarea>`;
+    const paged = ["reddit", "x", "linkedin_posts", "linkedin_jobs", "facebook_posts", "facebook_groups", "instagram_hashtags", "instagram_reels"].includes(key);
     const pagesInput = paged ? `<label style="margin-top:12px">${T("pages_label")}</label><input type="number" min="1" max="10" data-pages="${key}" value="${esc(s.max_pages || 3)}" style="width:90px">` : "";
     grid.insertAdjacentHTML("beforeend", `<div class="pcard"><div class="ph"><label class="switch"><input type="checkbox" data-en="${key}" ${s.enabled ? "checked" : ""}><span></span></label><b>${esc(meta.name())}</b><span class="price">${esc(meta.cost())}</span></div><div class="pt">${queries}${pagesInput}${extra}</div></div>`);
   }

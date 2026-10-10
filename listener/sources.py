@@ -24,6 +24,10 @@ ENDPOINTS = {
     "linkedin_posts": "anyapi.linkedin.search.posts",
     "linkedin_jobs": "anyapi.linkedin.search.jobs",
     "funding": "getleadsio.companies.funding.feed",
+    "facebook_posts": "justoneapi.x.facebook-search-post-v1",
+    "facebook_groups": "anyapi.facebook.group.posts",
+    "instagram_hashtags": "anyapi.instagram.hashtag.posts",
+    "instagram_reels": "anyapi.instagram.search.reels",
 }
 
 TAG_RE = re.compile(r"<[^>]+>")
@@ -223,6 +227,76 @@ def parse_funding(resp, query=""):
     return out
 
 
+def parse_facebook_posts(resp, query):
+    data = resp.get("data") if isinstance(resp, dict) and isinstance(resp.get("data"), dict) else unwrap(resp)
+    out = []
+    for p in (data or {}).get("results") or []:
+        if not isinstance(p, dict) or not p.get("post_id"):
+            continue
+        text = clean_text(p.get("message") or p.get("message_rich"))
+        if not text:
+            continue
+        author = p.get("author") or {}
+        out.append({
+            "source": "facebook", "kind": "pain", "external_id": str(p["post_id"]), "url": p.get("url", ""),
+            "title": "", "text": text, "author": author.get("name", ""), "author_url": author.get("url", ""),
+            "community": clean_text((p.get("associated_group") or {}).get("name") if isinstance(p.get("associated_group"), dict) else "", 120),
+            "created_utc": to_epoch(p.get("timestamp")),
+            "engagement": _int(p.get("reactions_count")) + _int(p.get("comments_count")), "query": query,
+        })
+    return out
+
+
+def parse_facebook_group(resp, group_url):
+    data = unwrap(resp)
+    out = []
+    for p in (data or {}).get("posts") or []:
+        if not isinstance(p, dict) or not p.get("id"):
+            continue
+        text = clean_text(p.get("text"))
+        if not text:  # image-only posts carry no signal for keyword scoring
+            continue
+        out.append({
+            "source": "facebook_group", "kind": "pain", "external_id": str(p["id"]), "url": p.get("url", ""),
+            "title": "", "text": text, "author": p.get("authorName", ""),
+            "author_url": f"https://www.facebook.com/{p['authorId']}" if p.get("authorId") else "",
+            "community": "FB group · " + group_url.rstrip("/").rsplit("/", 1)[-1],
+            "created_utc": to_epoch(p.get("publishTime")),
+            "engagement": _int(p.get("reactionCount")) + _int(p.get("commentCount")), "query": group_url,
+        })
+    return out
+
+
+def _parse_instagram(items, source, query, community):
+    out = []
+    for p in items or []:
+        if not isinstance(p, dict):
+            continue
+        pid = p.get("id") or p.get("shortcode")
+        text = clean_text(p.get("caption"))
+        if not pid or not text:
+            continue
+        user = p.get("username", "")
+        out.append({
+            "source": source, "kind": "pain", "external_id": str(pid), "url": p.get("url", ""),
+            "title": "", "text": text, "author": user,
+            "author_url": f"https://www.instagram.com/{user}/" if user else "", "community": community,
+            "created_utc": to_epoch(p.get("createdUtc")),
+            "engagement": _int(p.get("likes")) // 10 + _int(p.get("comments")), "query": query,
+        })
+    return out
+
+
+def parse_instagram_hashtag(resp, hashtag):
+    data = unwrap(resp)
+    return _parse_instagram((data or {}).get("posts"), "instagram", hashtag, "#" + hashtag)
+
+
+def parse_instagram_reels(resp, query):
+    data = unwrap(resp)
+    return _parse_instagram((data or {}).get("reels"), "instagram_reels", query, "Reels")
+
+
 def _int(v):
     try:
         return int(v)
@@ -310,6 +384,57 @@ def fetch_linkedin_jobs(client: TregClient, query, days=7, cursor=None, location
     resp, _ = client.call(ENDPOINTS["linkedin_jobs"], body=body,
                           idempotency_seed=f"lij|{query}|{location}|{cursor or ''}|{_bucket(days)}")
     return parse_linkedin_jobs(resp, query), next_cursor(resp)
+
+
+def _date_posted(days):
+    return "last-day" if days <= 1 else "last-week" if days <= 7 else "last-month" if days <= 31 else "last-year"
+
+
+def fetch_facebook_posts(client: TregClient, query, days=7, cursor=None):
+    start = datetime.fromtimestamp(time.time() - days * 86400, tz=timezone.utc).strftime("%Y-%m-%d")
+    params = {"keyword": query, "startDate": start}
+    if cursor:
+        params["cursor"] = cursor
+    resp, _ = client.call(ENDPOINTS["facebook_posts"], query=params,
+                          idempotency_seed=f"fbp|{query}|{cursor or ''}|{_bucket(days)}")
+    data = resp.get("data") if isinstance(resp, dict) else None
+    nxt = data.get("cursor") if isinstance(data, dict) else None
+    return parse_facebook_posts(resp, query), (nxt if isinstance(nxt, str) and nxt else None)
+
+
+def fetch_facebook_group(client: TregClient, group_url, days=7, cursor=None):
+    body = {"url": group_url, "sort": "CHRONOLOGICAL"}
+    if cursor:
+        body["cursor"] = cursor
+    resp, _ = client.call(ENDPOINTS["facebook_groups"], body=body,
+                          idempotency_seed=f"fbg|{group_url}|{cursor or ''}|{_bucket(days)}")
+    rows = parse_facebook_group(resp, group_url)
+    since = time.time() - days * 86400
+    fresh = [r for r in rows if not r["created_utc"] or r["created_utc"] >= since]
+    # Chronological feed: once a page is entirely older than the lookback, stop paging.
+    return fresh, (next_cursor(resp) if fresh else None)
+
+
+def fetch_instagram_hashtag(client: TregClient, hashtag, days=7, cursor=None):
+    tag = hashtag.strip().lstrip("#").replace(" ", "")
+    body = {"hashtag": tag, "datePosted": _date_posted(days)}
+    if cursor:
+        body["cursor"] = cursor
+    resp, _ = client.call(ENDPOINTS["instagram_hashtags"], body=body,
+                          idempotency_seed=f"igh|{tag}|{cursor or ''}|{_bucket(days)}")
+    return parse_instagram_hashtag(resp, tag), next_cursor(resp)
+
+
+def fetch_instagram_reels(client: TregClient, query, days=7, cursor=None):
+    # This endpoint rejects date filters (despite the catalog listing one), so filter locally.
+    body = {"query": query}
+    if cursor:
+        body["cursor"] = cursor
+    resp, _ = client.call(ENDPOINTS["instagram_reels"], body=body,
+                          idempotency_seed=f"igr|{query}|{cursor or ''}|{_bucket(days)}")
+    since = time.time() - days * 86400
+    rows = [r for r in parse_instagram_reels(resp, query) if not r["created_utc"] or r["created_utc"] >= since]
+    return rows, next_cursor(resp)
 
 
 def fetch_funding(client: TregClient, days=7, region="US", limit=50):

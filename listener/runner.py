@@ -14,6 +14,10 @@ TREG_SOURCES = {
     "reddit": sources.fetch_reddit,
     "x": sources.fetch_x,
     "linkedin_posts": sources.fetch_linkedin_posts,
+    "facebook_posts": sources.fetch_facebook_posts,
+    "facebook_groups": sources.fetch_facebook_group,
+    "instagram_hashtags": sources.fetch_instagram_hashtag,
+    "instagram_reels": sources.fetch_instagram_reels,
 }
 
 

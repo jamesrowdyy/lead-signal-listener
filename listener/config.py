@@ -41,6 +41,13 @@ DEFAULT_CONFIG = {
                           "queries": ["Head of Growth", "SEO Manager", "Growth Marketing Manager",
                                       "Content Marketing Manager"]},
         "funding": {"enabled": False, "region": "US"},
+        # Meta platforms (off by default). Facebook post search is the priciest source (~$0.03/page).
+        "facebook_posts": {"enabled": False, "max_pages": 1, "queries": ["AI search visibility", "GEO agency"]},
+        # One public group URL per line; posts older than the lookback window are dropped.
+        "facebook_groups": {"enabled": False, "max_pages": 2, "queries": []},
+        # Hashtags without "#".
+        "instagram_hashtags": {"enabled": False, "max_pages": 2, "queries": ["seotips", "aisearch"]},
+        "instagram_reels": {"enabled": False, "max_pages": 2, "queries": ["ChatGPT SEO", "AI search visibility"]},
     },
     # Free: any RSS/Atom feed. Optional keyword filter (match any; empty = keep everything).
     "rss": {"enabled": False, "keywords": [],

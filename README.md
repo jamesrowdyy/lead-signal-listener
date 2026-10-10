@@ -2,7 +2,7 @@
 
 **Find people who are publicly describing the problem you solve — before they find your competitors.**
 
-Lead Signal Listener is a local, open-source lead discovery tool. It listens to Reddit, X, LinkedIn, Hacker News, YouTube, news, RSS feeds, and any of the 3,800+ endpoints in the [Treg](https://treg.to) catalog. It also picks up trigger signals such as hiring and funding. Every lead is scored, de-duplicated and queued, so you can review the best ones first.
+Lead Signal Listener is a local, open-source lead discovery tool. It listens to Reddit, X, LinkedIn, Facebook, Instagram, Hacker News, YouTube, news, RSS feeds, and any of the 3,800+ endpoints in the [Treg](https://treg.to) catalog. It also picks up trigger signals such as hiring and funding. Every lead is scored, de-duplicated and queued, so you can review the best ones first.
 
 [中文说明](README.zh-CN.md) · [Agent setup guide](AGENT_SETUP.md)
 
@@ -54,7 +54,7 @@ The UI defaults to English. Use the `EN / 中文` toggle in the top-right corner
 
 | Method | Examples | Cost |
 |---|---|---|
-| **Built-in sources** | Reddit, X, LinkedIn posts, LinkedIn jobs (hiring signals), funding news | Paid via Treg, ~$0.0005–0.015 per call |
+| **Built-in sources** | Reddit, X, LinkedIn posts, LinkedIn jobs (hiring signals), Facebook posts, Facebook groups, Instagram hashtags, Instagram Reels, funding news | Paid via Treg, ~$0.0005–0.03 per call |
 | **Hacker News** | Stories and comments by keyword (Algolia API) | Free |
 | **RSS / Atom** | Google Alerts, `reddit.com/r/NAME/new/.rss`, `hnrss.org/newest?q=...`, blogs, job boards, with an optional keyword filter | Free |
 | **Any Treg endpoint** | YouTube, TikTok, Google News, reviews…: a params template plus optional field mapping | Paid via Treg |
@@ -76,6 +76,10 @@ You can also search the catalog in the UI (**Listeners → Treg catalog**). Clic
 | X | pain | `treg.x.search.posts` (routed, cheapest provider first) | $0.00075–0.015 / call |
 | LinkedIn posts | pain | `anyapi.linkedin.search.posts` | $0.002 / call |
 | LinkedIn jobs | hiring | `anyapi.linkedin.search.jobs` | $0.0005 / call |
+| Facebook posts | pain | `justoneapi.x.facebook-search-post-v1` | $0.03 / call |
+| Facebook groups | pain | `anyapi.facebook.group.posts` (one public group URL per line) | $0.002 / call |
+| Instagram hashtags | pain | `anyapi.instagram.hashtag.posts` (hashtags without `#`) | $0.002 / call |
+| Instagram Reels | pain | `anyapi.instagram.search.reels` | $0.0015 / call |
 | Funding | funding | `getleadsio.companies.funding.feed` | per result |
 
 Prices are from the Treg catalog (Oct 2026). The `X-Treg-Cost-Micro` response header is authoritative. Each keyword fetches up to `max_pages` pages per run (default 3 for Reddit/X, 2 for LinkedIn; one page = one call). A run of the default config is about 50 calls, roughly **$0.07**.

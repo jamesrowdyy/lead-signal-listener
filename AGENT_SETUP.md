@@ -19,7 +19,7 @@ It can listen in several ways, and they can be combined:
 
 | Method | How | Cost |
 |---|---|---|
-| Built-in sources | Reddit, X, LinkedIn posts, LinkedIn jobs (hiring signals), funding news, through [Treg](https://treg.to) | Paid per call, usually under $0.01 |
+| Built-in sources | Reddit, X, LinkedIn posts, LinkedIn jobs (hiring signals), Facebook posts, Facebook groups, Instagram hashtags, Instagram Reels, funding news, through [Treg](https://treg.to) | Paid per call, usually under $0.01 (Facebook post search ~$0.03) |
 | Hacker News | Official Algolia API | Free |
 | RSS / Atom | Any feed: Google Alerts, `reddit.com/r/NAME/new/.rss`, `hnrss.org/newest?q=...`, blogs, job boards | Free |
 | Custom Treg endpoint | Any of the 3,800+ Treg catalog endpoints (YouTube, TikTok, Google News, reviews…) using a params template and field mapping | Paid per call |
@@ -85,6 +85,7 @@ Turn the ICP into keyword sets. Rules that work:
 - **Pages:** each paged source (Reddit, X, LinkedIn) has `max_pages` (default 3 for Reddit/X, 2 for LinkedIn). One page = one paid call. A Reddit page holds ~7 posts and an X page ~20, and later pages are usually still relevant, so more pages is the cheapest way to get more leads. Raise it before adding many more keywords.
 - **Hiring signals:** use job titles that imply budget for the problem (e.g. "Head of Growth", "SEO Manager").
 - **RSS:** subreddit `.rss` feeds plus `https://hnrss.org/newest?q=<keyword>`; use the RSS keyword filter to cut noise.
+- **Facebook / Instagram** (off by default): `facebook_groups` takes public group URLs (ask the user which communities their buyers join; group posts are often the highest-intent leads), `instagram_hashtags` takes hashtags without `#`, `facebook_posts` and `instagram_reels` take keywords. Facebook post search is the priciest source (~$0.03 per page), so keep `max_pages` at 1 there.
 - **Other platforms:** search the catalog and add custom sources (see Step 7).
 
 Show the user a table: source × queries × pages, plus an estimated cost per run (paid queries × pages × ~$0.002 for Reddit/LinkedIn posts, ~$0.001 for X, ~$0.0005 for LinkedIn jobs). Let them edit it.
