@@ -6,12 +6,12 @@ Lead Signal Listener 是一个在本地运行的开源线索发现工具。它�
 
 [English](README.md) · [Agent 初始化说明](AGENT_SETUP.md)
 
-![线索面板：来自 Reddit、X、LinkedIn、HN、RSS 的痛点信号和招聘信号，按分数排序](docs/screenshot-leads-zh.png)
+![线索面板：来自 Reddit、Facebook 群组、X、LinkedIn、Instagram、HN 的痛点信号和招聘信号，按分数排序](docs/screenshot-leads-zh.png)
 
 <details>
-<summary><b>更多截图</b>：监听配置页</summary>
+<summary><b>更多截图</b>：监听配置页（Facebook / Instagram、每个关键词抓几页、一键复制 Agent 提示词）</summary>
 
-![监听配置：内置数据源、RSS/Atom、Treg 目录搜索和自定义数据源](docs/screenshot-listeners-zh.png)
+![监听配置：监听目标、含 Facebook 和 Instagram 的内置数据源、每个关键词抓几页、复制提示词横幅](docs/screenshot-listeners-zh.png)
 
 </details>
 

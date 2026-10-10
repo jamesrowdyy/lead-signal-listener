@@ -6,12 +6,12 @@ Lead Signal Listener is a local, open-source lead discovery tool. It listens to 
 
 [中文说明](README.zh-CN.md) · [Agent setup guide](AGENT_SETUP.md)
 
-![Leads dashboard: scored pain signals from Reddit, X, LinkedIn, HN, RSS and hiring signals](docs/screenshot-leads.png)
+![Leads dashboard: scored pain signals from Reddit, Facebook groups, X, LinkedIn, Instagram, HN and hiring signals](docs/screenshot-leads.png)
 
 <details>
-<summary><b>More screenshots</b>: listeners configuration</summary>
+<summary><b>More screenshots</b>: listeners configuration (Facebook / Instagram, pages per keyword, one-click agent prompt)</summary>
 
-![Listeners: built-in sources, RSS/Atom, Treg catalog search and custom sources](docs/screenshot-listeners.png)
+![Listeners: focus, built-in sources including Facebook and Instagram, pages per keyword, and the copy-prompt banner](docs/screenshot-listeners.png)
 
 </details>
 
