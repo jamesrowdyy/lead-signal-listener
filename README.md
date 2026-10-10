@@ -4,7 +4,7 @@
 
 Lead Signal Listener is a local, open-source lead discovery tool. It listens to Reddit, X, LinkedIn, Facebook, Instagram, Hacker News, YouTube, news, RSS feeds, and any of the 3,800+ endpoints in the [Treg](https://treg.to) catalog. It also picks up trigger signals such as hiring and funding. Every lead is scored, de-duplicated and queued, so you can review the best ones first.
 
-[中文说明](README.zh-CN.md) · [Agent setup guide](AGENT_SETUP.md)
+[中文说明](README.zh-CN.md) · [Agent setup guide](AGENT_SETUP.md) · [Showcase: built in one AI conversation](https://yangyixxxx.github.io/lead-signal-listener/showcase.html)
 
 **Built by [newmax.ai](https://newmax.ai)** · **Powered by [treg.to](https://treg.to)**
 

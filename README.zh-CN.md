@@ -4,7 +4,7 @@
 
 Lead Signal Listener 是一个在本地运行的开源线索发现工具。它监听 Reddit、X、LinkedIn、Facebook、Instagram、Hacker News、YouTube、新闻、RSS 订阅，以及 [Treg](https://treg.to) 目录里 3800 多个端点中的任意一个，同时捕捉招聘、融资这类触发信号。每条线索都会自动打分、去重并进入待处理队列，你可以从分数最高的开始处理。
 
-[English](README.md) · [Agent 初始化说明](AGENT_SETUP.md)
+[English](README.md) · [Agent 初始化说明](AGENT_SETUP.md) · [Showcase：一段对话做出这个项目](https://yangyixxxx.github.io/lead-signal-listener/showcase.html)
 
 **Built by [newmax.ai](https://newmax.ai)** · **Powered by [treg.to](https://treg.to)**
 
