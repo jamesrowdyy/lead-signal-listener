@@ -6,6 +6,8 @@ Lead Signal Listener 是一个在本地运行的开源线索发现工具。它�
 
 [English](README.md) · [Agent 初始化说明](AGENT_SETUP.md)
 
+**Built by [newmax.ai](https://newmax.ai)** · **Powered by [treg.to](https://treg.to)**
+
 ![线索面板：来自 Reddit、Facebook 群组、X、LinkedIn、Instagram、HN 的痛点信号和招聘信号，按分数排序](docs/screenshot-leads-zh.png)
 
 <details>
@@ -132,4 +134,9 @@ TREG_TOKEN=... python app.py                # 用环境变量提供 token，不�
 
 ---
 
-Made by [@yangyi](https://x.com/yangyi) · built by [newmax.ai](https://newmax.ai)
+## 致谢
+
+- **Built by [newmax.ai](https://newmax.ai)**：作者 Yangyi · X：[@yangyi](https://x.com/yangyi)
+- **Powered by [treg.to](https://treg.to)**：作者 Jason Zhou · X：[@jasonzhou1993](https://x.com/jasonzhou1993)
+
+如果这个项目对你有帮助，欢迎在 GitHub 点个 ⭐，也欢迎在 X 上关注我们。

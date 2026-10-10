@@ -6,6 +6,8 @@ Lead Signal Listener is a local, open-source lead discovery tool. It listens to 
 
 [中文说明](README.zh-CN.md) · [Agent setup guide](AGENT_SETUP.md)
 
+**Built by [newmax.ai](https://newmax.ai)** · **Powered by [treg.to](https://treg.to)**
+
 ![Leads dashboard: scored pain signals from Reddit, Facebook groups, X, LinkedIn, Instagram, HN and hiring signals](docs/screenshot-leads.png)
 
 <details>
@@ -159,4 +161,9 @@ tests/                  unit tests (python -m unittest discover tests)
 
 ---
 
-Made by [@yangyi](https://x.com/yangyi) · built by [newmax.ai](https://newmax.ai)
+## Credits
+
+- **Built by [newmax.ai](https://newmax.ai)** — made by Yangyi · X: [@yangyi](https://x.com/yangyi)
+- **Powered by [treg.to](https://treg.to)** — built by Jason Zhou · X: [@jasonzhou1993](https://x.com/jasonzhou1993)
+
+If this project helps you, a ⭐ on GitHub and a follow on X are much appreciated.
