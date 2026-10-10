@@ -72,7 +72,7 @@ Keywords and scoring are only as good as your understanding of the buyer. Ask th
 6. **Noise to exclude:** Who uses the same words but is *not* a buyer? (competitors and agencies promoting themselves, job seekers, students, vendors…)
 7. **Budget:** How much per run and per month is OK to spend on paid sources?
 
-Summarize the answers back as a one-paragraph ideal customer profile (ICP) and get a yes before moving on.
+Summarize the answers back as a one-paragraph ideal customer profile (ICP) and get a yes before moving on. Then condense it into **one sentence** and save it as `focus` (Step 6). It's shown at the top of the Leads page, e.g. *"B2B SaaS founders whose organic traffic dropped because of AI search."*
 
 ## Step 4 — Propose keywords
 
@@ -120,6 +120,7 @@ curl -s -X POST http://127.0.0.1:8787/api/config -H "Content-Type: application/j
 
 ```json
 {
+  "focus": "B2B SaaS founders whose organic traffic dropped because of AI search.",
   "lookback_days": 7,
   "max_cost_per_call_usd": 0.05,
   "max_cost_per_run_usd": 0.5,

@@ -199,7 +199,7 @@
       <div>
         <span class="kicker"><span class="dot" id="liveDot"></span><span id="kickerText">loading…</span></span>
         <h1 data-i18n="h_leads"></h1>
-        <p data-i18n="leads_intro"></p>
+        <p id="leadsIntro"></p>
       </div>
       <div class="actions">
         <a class="btn ghost" id="exportCsv" href="#" data-i18n="export_csv"></a>
@@ -241,6 +241,12 @@
       <div><span class="kicker" data-i18n="k_sources"></span><h1 data-i18n="h_sources"></h1>
         <p data-i18n="sources_intro"></p></div>
       <div class="actions"><span class="msg" id="srcMsg"></span><button class="btn" id="saveSources" data-i18n="save_config"></button></div>
+    </div>
+    <div class="card">
+      <div class="eyebrow" data-i18n="focus_eb"></div>
+      <h2 data-i18n="focus_title"></h2>
+      <p class="desc" data-i18n="focus_hint"></p>
+      <input type="text" id="focus" data-i18n-ph="focus_ph" style="width:100%" maxlength="300">
     </div>
     <div class="grid" id="srcGrid"></div>
 
@@ -323,7 +329,14 @@
 const I18N = {
   en: {
     tab_leads: "Leads", tab_sources: "Listeners", tab_settings: "Settings",
-    leads_intro: "Find people on Reddit, X, LinkedIn and Hacker News who are struggling with AI search visibility and customer acquisition. Review and follow up by score.",
+    intro_focus: f => `${f} Review and follow up by score.`,
+    intro_auto: (src, kws, more) => `Listening on ${src} for ${kws}${more ? ` and ${more} more` : ""}. Review and follow up by score.`,
+    intro_src_only: src => `Listening on ${src}. Review and follow up by score.`,
+    intro_none: "No listeners enabled yet. Open Listeners to describe who you're looking for and add keywords.",
+    list_and: " and ", quote: k => `“${k}”`,
+    focus_eb: "focus", focus_title: "Who are you looking for?",
+    focus_hint: "One sentence describing the people or companies you want to find. It's shown on the Leads page. Leave it empty to describe your listeners automatically.",
+    focus_ph: "e.g. B2B SaaS founders whose organic traffic dropped because of AI search",
     export_csv: "Export CSV", export_json: "Export JSON", run_now: "Run now", last_log: "last run log ▾", no_log: "No runs yet",
     all: "All", st_new: "new · to review", st_qualified: "qualified", st_contacted: "contacted", st_replied: "replied", st_ignored: "ignored",
     search_ph: "Title / text / author, press Enter", refresh: "Refresh",
@@ -363,7 +376,14 @@ const I18N = {
   },
   zh: {
     tab_leads: "线索", tab_sources: "监听配置", tab_settings: "设置",
-    leads_intro: "在 Reddit、X、LinkedIn 和 Hacker News 上找到正在为 AI 搜索可见度、获客发愁的人，按分数逐条审核和跟进。",
+    intro_focus: f => `${f}${/[A-Za-z0-9.,!?)"]$/.test(f) ? " " : ""}按分数逐条审核和跟进。`,
+    intro_auto: (src, kws, more) => `正在 ${src} 上监听${kws}${more ? `等 ${more + 3} 个关键词` : ""}，按分数逐条审核和跟进。`,
+    intro_src_only: src => `正在 ${src} 上监听，按分数逐条审核和跟进。`,
+    intro_none: "还没有启用任何数据源。去「监听配置」写下你要找的人，再添加关键词。",
+    list_and: "、", quote: k => `「${k}」`,
+    focus_eb: "监听目标", focus_title: "你想找什么样的人？",
+    focus_hint: "用一句话描述你要找的人或公司，会显示在线索页顶部。留空则根据启用的数据源和关键词自动生成。",
+    focus_ph: "例如：自然流量因 AI 搜索下滑的 B2B SaaS 创始人",
     export_csv: "导出 CSV", export_json: "导出 JSON", run_now: "立即运行", last_log: "最近一次运行日志 ▾", no_log: "尚未运行",
     all: "全部", st_new: "new · 待处理", st_qualified: "qualified · 合格", st_contacted: "contacted · 已联系", st_replied: "replied · 已回复", st_ignored: "ignored · 忽略",
     search_ph: "标题 / 正文 / 作者，回车搜索", refresh: "刷新",
@@ -448,15 +468,54 @@ document.querySelectorAll(".lang button").forEach(b => b.onclick = async () => {
   await loadConfig(); loadSignals(); loadStatus();
 });
 
+// Listeners that will actually run: free ones always, paid ones only with a token.
+function activeListeners() {
+  const hasToken = CONFIG.token_source !== "none";
+  const names = [], keywords = [];
+  for (const [key, s] of Object.entries(CONFIG.sources || {})) {
+    if (!s.enabled || (key !== "hn" && !hasToken)) continue;
+    names.push(SRC_META[key] ? SRC_META[key].name() : key);
+    keywords.push(...(s.queries || []));
+  }
+  const rss = CONFIG.rss || {};
+  if (rss.enabled && (rss.feeds || []).length) { names.push("RSS"); keywords.push(...(rss.keywords || [])); }
+  for (const c of CONFIG.custom_sources || []) {
+    if (!c.enabled || !hasToken) continue;
+    names.push(c.name || c.endpoint);
+    keywords.push(...(c.queries || []).filter(Boolean));
+  }
+  return {names: [...new Set(names)], keywords: [...new Set(keywords)]};
+}
+function joinList(items) {
+  if (items.length <= 1) return items.join("");
+  return LANG === "zh" ? items.join("、") : items.slice(0, -1).join(", ") + T("list_and") + items[items.length - 1];
+}
+function renderIntro(active) {
+  const focus = (CONFIG.focus || "").trim();
+  let text;
+  if (focus) text = T("intro_focus", /[.!?。！？]$/.test(focus) ? focus : focus + (LANG === "zh" ? "。" : "."));
+  else if (!active.names.length) text = T("intro_none");
+  else {
+    const shown = active.keywords.slice(0, 3).map(k => T("quote", k));
+    const more = Math.max(0, active.keywords.length - 3);
+    // zh: 「a」「b」「c」; en: “a”, “b”, “c” and N more  /  “a” and “b”
+    const kws = LANG === "zh" ? shown.join("") : (more ? shown.join(", ") : joinList(shown));
+    text = shown.length ? T("intro_auto", joinList(active.names), kws, more) : T("intro_src_only", joinList(active.names));
+  }
+  $("leadsIntro").textContent = text;
+}
+
 async function loadConfig() {
   CONFIG = await api("/api/config");
   $("token").value = "";
   $("token").placeholder = CONFIG.treg_token && CONFIG.treg_token !== "set" ? CONFIG.treg_token : "trg_live_...";
   $("tokenState").textContent = {env: T("tok_env"), file: T("tok_file") + CONFIG.treg_token, none: T("tok_none")}[CONFIG.token_source];
   $("tokenDot").className = "dot" + (CONFIG.token_source === "none" ? "" : " live");
-  const enabled = Object.entries(CONFIG.sources).filter(([k, s]) => s.enabled && (k === "hn" || CONFIG.token_source !== "none")).length;
-  $("kickerText").textContent = T("kicker", enabled, CONFIG.lookback_days);
-  $("liveDot").className = "dot" + (enabled ? " live" : "");
+  const active = activeListeners();
+  $("kickerText").textContent = T("kicker", active.names.length, CONFIG.lookback_days);
+  $("liveDot").className = "dot" + (active.names.length ? " live" : "");
+  renderIntro(active);
+  $("focus").value = CONFIG.focus || "";
   $("lookback").value = CONFIG.lookback_days; $("perCall").value = CONFIG.max_cost_per_call_usd;
   $("perRun").value = CONFIG.max_cost_per_run_usd; $("schedule").value = CONFIG.schedule_hours; $("minKeep").value = CONFIG.min_score_to_keep;
   $("rules").value = JSON.stringify(CONFIG.rules, null, 2);
@@ -508,7 +567,8 @@ $("saveSources").onclick = async () => {
   }
   const lines = id => $(id).value.split("\n").map(x => x.trim()).filter(Boolean);
   const rss = {enabled: $("rssEnabled").checked, feeds: lines("rssFeeds"), keywords: lines("rssKeywords")};
-  try { await api("/api/config", {method: "POST", body: JSON.stringify({sources, rss})}); await loadConfig(); flash($("srcMsg"), T("saved")); }
+  const focus = $("focus").value.trim();
+  try { await api("/api/config", {method: "POST", body: JSON.stringify({sources, rss, focus})}); await loadConfig(); flash($("srcMsg"), T("saved")); }
   catch (e) { flash($("srcMsg"), e.message, false); }
 };
 $("saveCustom").onclick = async () => {

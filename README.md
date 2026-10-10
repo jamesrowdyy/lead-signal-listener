@@ -41,10 +41,12 @@ python app.py            # opens http://127.0.0.1:8787  (Windows: double-click s
 ```
 
 1. **Settings** → paste your Treg token → Save → Verify
-2. **Listeners** → enable sources and add keywords (one per line)
+2. **Listeners** → describe who you're looking for, enable sources and add keywords (one per line)
 3. **Leads** → **Run now**, review by score, set a status, add notes, export CSV/JSON
 
 No token? The free sources still work: Hacker News, RSS and import.
+
+The default keywords and scoring rules are only an **example** (finding companies that struggle with AI search visibility). Replace them with your own: any audience, any problem. The Leads page describes whatever you configure.
 
 The UI defaults to English. Use the `EN / 中文` toggle in the top-right corner to switch.
 

@@ -20,6 +20,8 @@ DEFAULT_CONFIG = {
     "treg_token": "",
     "treg_org": "",
     "lang": "en",
+    # One sentence describing who you're looking for; shown on the Leads page.
+    "focus": "",
     "lookback_days": 7,
     "max_cost_per_call_usd": 0.05,
     "max_cost_per_run_usd": 1.0,
