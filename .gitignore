@@ -1,3 +1,17 @@
+# local data: config (contains your Treg token) and the leads database
 data/
+
+# secrets / environment files — never commit
+.env
+.env.*
+*.env
+!.env.example
+*.pem
+*.key
+secrets.*
+
+# python
 __pycache__/
 *.pyc
+.venv/
+venv/

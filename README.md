@@ -6,6 +6,17 @@ Lead Signal Listener is a local, open-source lead discovery tool. It listens to 
 
 [中文说明](README.zh-CN.md) · [Agent setup guide](AGENT_SETUP.md)
 
+![Leads dashboard: scored pain signals from Reddit, X, LinkedIn, HN, RSS and hiring signals](docs/screenshot-leads.png)
+
+<details>
+<summary><b>More screenshots</b>: listeners configuration</summary>
+
+![Listeners: built-in sources, RSS/Atom, Treg catalog search and custom sources](docs/screenshot-listeners.png)
+
+</details>
+
+<sub>Screenshots use fictional demo data.</sub>
+
 ---
 
 ## Let your AI agent set it up
@@ -131,6 +142,8 @@ listener/
   server.py             local JSON API + scheduler
   i18n.py               server-side messages (en / zh)
   static/index.html     single-page UI (en / zh)
+  static/fonts/         bundled OFL fonts (no Google Fonts dependency)
+docs/                   screenshots
 tests/                  unit tests (python -m unittest discover tests)
 ```
 

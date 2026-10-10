@@ -114,11 +114,11 @@ class StoreConfigTests(unittest.TestCase):
     def test_token_masking(self):
         os.environ.pop("TREG_TOKEN", None)
         cfg = Config(os.path.join(self.dir, "config.json"))
-        cfg.update({"treg_token": "trg_live_abcdefghijklmnop1234"})
+        cfg.update({"treg_token": "FAKE-TEST-TOKEN-not-a-real-key-0000"})
         masked = cfg.public()["treg_token"]
-        self.assertNotIn("abcdefghijklmnop", masked)
+        self.assertNotIn("not-a-real-key", masked)
         cfg.update({"treg_token": masked, "lookback_days": 3})  # masked echo must not overwrite
-        self.assertEqual(cfg.token(), "trg_live_abcdefghijklmnop1234")
+        self.assertEqual(cfg.token(), "FAKE-TEST-TOKEN-not-a-real-key-0000")
         self.assertEqual(Config(cfg.path).data["lookback_days"], 3)
 
 

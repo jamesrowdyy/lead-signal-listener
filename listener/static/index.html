@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lead Signal Listener</title>
+<link rel="stylesheet" href="/fonts.css">
 <style>
   /* Visual language follows treg.to: neutral canvas, hairline borders, ink buttons, mono metadata. */
   :root {
@@ -608,13 +609,6 @@ api("/api/config", {method: "POST", body: JSON.stringify({lang: LANG})}).catch((
   .finally(() => loadConfig().then(() => { loadSignals(); loadStatus(); }));
 setInterval(loadStatus, 3000);
 
-// Web fonts are optional: load after the page so a slow/blocked Google Fonts never delays the UI.
-window.addEventListener("load", () => {
-  const l = document.createElement("link");
-  l.rel = "stylesheet";
-  l.href = "https://fonts.googleapis.com/css2?family=Geist+Pixel&family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap";
-  document.head.appendChild(l);
-});
 </script>
 </body>
 </html>
