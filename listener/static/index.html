@@ -194,7 +194,7 @@
     <div class="hero">
       <div>
         <span class="kicker"><span class="dot" id="liveDot"></span><span id="kickerText">loading…</span></span>
-        <h1>Pain signals</h1>
+        <h1 data-i18n="h_leads"></h1>
         <p data-i18n="leads_intro"></p>
       </div>
       <div class="actions">
@@ -213,17 +213,17 @@
 
     <div class="card">
       <div class="filters">
-        <div><label>status</label><select id="fStatus">
+        <div><label data-i18n="lb_status"></label><select id="fStatus">
           <option value="" data-i18n="all"></option>
           <option value="new" selected data-i18n="st_new"></option>
           <option value="qualified" data-i18n="st_qualified"></option>
           <option value="contacted" data-i18n="st_contacted"></option>
           <option value="replied" data-i18n="st_replied"></option>
           <option value="ignored" data-i18n="st_ignored"></option></select></div>
-        <div><label>source</label><select id="fSource"><option value="" data-i18n="all"></option><option>reddit</option><option>x</option><option>hn</option><option>linkedin</option><option>linkedin_jobs</option><option>funding</option></select></div>
-        <div><label>persona</label><select id="fPersona"><option value="" data-i18n="all"></option><option>saas</option><option>dtc</option><option>other</option></select></div>
-        <div><label>min score</label><input type="number" id="fMin" value="20" style="width:90px"></div>
-        <div style="flex:1;min-width:200px"><label>search</label><input type="text" id="fQ" data-i18n-ph="search_ph" style="width:100%"></div>
+        <div><label data-i18n="lb_source"></label><select id="fSource"><option value="" data-i18n="all"></option><option>reddit</option><option>x</option><option>hn</option><option>linkedin</option><option>linkedin_jobs</option><option>funding</option></select></div>
+        <div><label data-i18n="lb_persona"></label><select id="fPersona"><option value="" data-i18n="all"></option><option>saas</option><option>dtc</option><option>other</option></select></div>
+        <div><label data-i18n="lb_min"></label><input type="number" id="fMin" value="20" style="width:90px"></div>
+        <div style="flex:1;min-width:200px"><label data-i18n="lb_search"></label><input type="text" id="fQ" data-i18n-ph="search_ph" style="width:100%"></div>
         <button class="btn ghost" id="refreshBtn" data-i18n="refresh"></button>
       </div>
       <div id="rows"></div>
@@ -234,7 +234,7 @@
   <!-- SOURCES -->
   <section id="tab-sources" class="hidden">
     <div class="hero">
-      <div><span class="kicker">sources · keywords · rules</span><h1>Listeners</h1>
+      <div><span class="kicker" data-i18n="k_sources"></span><h1 data-i18n="h_sources"></h1>
         <p data-i18n="sources_intro"></p></div>
       <div class="actions"><span class="msg" id="srcMsg"></span><button class="btn" id="saveSources" data-i18n="save_config"></button></div>
     </div>
@@ -242,7 +242,7 @@
 
     <div class="grid" style="margin-top:14px">
       <div class="pcard">
-        <div class="ph"><label class="switch"><input type="checkbox" id="rssEnabled"><span></span></label><b>RSS / Atom</b><span class="price">free</span></div>
+        <div class="ph"><label class="switch"><input type="checkbox" id="rssEnabled"><span></span></label><b>RSS / Atom</b><span class="price" data-i18n="free"></span></div>
         <div class="pt">
           <p class="note" style="margin-top:0" data-i18n="rss_desc"></p>
           <label data-i18n="rss_feeds"></label><textarea id="rssFeeds"></textarea>
@@ -250,7 +250,7 @@
         </div>
       </div>
       <div class="pcard">
-        <div class="ph"><b>Treg catalog</b><span class="price">3,800+ endpoints</span></div>
+        <div class="ph"><b data-i18n="catalog_title"></b><span class="price" data-i18n="endpoints"></span></div>
         <div class="pt">
           <p class="note" style="margin-top:0" data-i18n="catalog_desc"></p>
           <div class="tokenrow"><input type="text" id="catQ" data-i18n-ph="catalog_ph" style="font-family:var(--sans)"><button class="btn ghost" id="catBtn" data-i18n="search"></button></div>
@@ -276,10 +276,10 @@
 
   <!-- SETTINGS -->
   <section id="tab-settings" class="hidden">
-    <div class="hero"><div><span class="kicker">one key · 3,800+ endpoints</span><h1>Settings</h1>
+    <div class="hero"><div><span class="kicker" data-i18n="k_settings"></span><h1 data-i18n="h_settings"></h1>
       <p data-i18n="settings_intro"></p></div></div>
     <div class="card">
-      <div class="eyebrow">treg api token</div>
+      <div class="eyebrow" data-i18n="eb_token"></div>
       <h2 data-i18n="token_title"></h2>
       <p class="desc" data-i18n-html="token_desc"></p>
       <div class="tokenrow">
@@ -290,7 +290,7 @@
       <div class="state"><span class="dot" id="tokenDot"></span><span id="tokenState"></span><span class="msg" id="tokenMsg"></span></div>
     </div>
     <div class="card">
-      <div class="eyebrow">budget · schedule</div>
+      <div class="eyebrow" data-i18n="eb_budget"></div>
       <h2 data-i18n="budget_title"></h2>
       <p class="desc" data-i18n-html="budget_desc"></p>
       <div class="fields">
@@ -349,6 +349,12 @@ const I18N = {
     custom_title: "Custom sources",
     custom_desc: 'Any Treg endpoint as a listener. <code>params</code> go to the query string (GET) or JSON body (POST); <code>{q}</code> is replaced by each query and <code>{days}</code> by the lookback. Optional: <code>fields</code> maps signal fields to response paths (<code>a.b|c</code> = alternatives), <code>items_path</code>, <code>url_template</code> (e.g. <code>https://www.youtube.com/watch?v={id}</code>), <code>kind</code> (pain / hiring / funding / mention / other).',
     added: "Added — review and Save", oss: "open source · MIT",
+    h_leads: "Pain signals", h_sources: "Listeners", h_settings: "Settings",
+    k_sources: "sources · keywords · rules", k_settings: "one key · 3,800+ endpoints",
+    eb_token: "treg api token", eb_budget: "budget · schedule",
+    lb_status: "status", lb_source: "source", lb_persona: "persona", lb_min: "min score", lb_search: "search",
+    free: "free", per_call: "/ call", per_result: "per result", catalog_title: "Treg catalog", endpoints: "3,800+ endpoints",
+    open: "open ↗", q_prefix: "q: ", ago_h: n => `${n}h ago`, ago_d: n => `${n}d ago`,
   },
   zh: {
     tab_leads: "线索", tab_sources: "监听配置", tab_settings: "设置",
@@ -383,18 +389,24 @@ const I18N = {
     custom_title: "自定义数据源",
     custom_desc: '把任意 Treg 端点变成监听源。<code>params</code> 在 GET 时作为查询参数、POST 时作为 JSON 请求体；<code>{q}</code> 会替换为每个关键词，<code>{days}</code> 替换为回看天数。可选：<code>fields</code> 把线索字段映射到返回数据路径（<code>a.b|c</code> 表示依次尝试），<code>items_path</code>，<code>url_template</code>（如 <code>https://www.youtube.com/watch?v={id}</code>），<code>kind</code>（pain / hiring / funding / mention / other）。',
     added: "已添加，确认后点保存", oss: "开源 · MIT 许可",
+    h_leads: "痛点信号", h_sources: "监听配置", h_settings: "设置",
+    k_sources: "数据源 · 关键词 · 规则", k_settings: "一个 key · 3800+ 端点",
+    eb_token: "treg api token", eb_budget: "预算 · 定时",
+    lb_status: "状态", lb_source: "来源", lb_persona: "人群", lb_min: "最低分", lb_search: "搜索",
+    free: "免费", per_call: "/ 次", per_result: "按条计费", catalog_title: "Treg 目录", endpoints: "3800+ 端点",
+    open: "打开原文 ↗", q_prefix: "关键词：", ago_h: n => `${n} 小时前`, ago_d: n => `${n} 天前`,
   },
 };
 let LANG = localStorage.getItem("sl_lang") || "en";
 const T = (k, ...a) => { const v = (I18N[LANG] || I18N.en)[k] ?? I18N.en[k] ?? k; return typeof v === "function" ? v(...a) : v; };
 
 const SRC_META = {
-  hn: {name: () => "Hacker News", cost: "free · algolia"},
-  reddit: {name: () => "Reddit", cost: "≈ $0.002 / call"},
-  x: {name: () => "X (Twitter)", cost: "≈ $0.00075–0.015 / call"},
-  linkedin_posts: {name: () => T("src_linkedin_posts"), cost: "≈ $0.002 / call"},
-  linkedin_jobs: {name: () => T("src_linkedin_jobs"), cost: "≈ $0.0005 / call"},
-  funding: {name: () => T("src_funding"), cost: "per result"},
+  hn: {name: () => "Hacker News", cost: () => T("free") + " · algolia"},
+  reddit: {name: () => "Reddit", cost: () => "≈ $0.002 " + T("per_call")},
+  x: {name: () => "X (Twitter)", cost: () => "≈ $0.00075–0.015 " + T("per_call")},
+  linkedin_posts: {name: () => T("src_linkedin_posts"), cost: () => "≈ $0.002 " + T("per_call")},
+  linkedin_jobs: {name: () => T("src_linkedin_jobs"), cost: () => "≈ $0.0005 " + T("per_call")},
+  funding: {name: () => T("src_funding"), cost: () => T("per_result")},
 };
 let CONFIG = null;
 const $ = id => document.getElementById(id);
@@ -457,7 +469,7 @@ async function loadConfig() {
     const extra = key === "linkedin_jobs" ? `<label style="margin-top:12px">${T("location")}</label><input type="text" data-loc="${key}" value="${esc(s.location || "United States")}" style="width:100%">`
                 : key === "funding" ? `<label>${T("region")}</label><select data-region="${key}">${["US","EU","GLOBAL"].map(r => `<option ${s.region===r?"selected":""}>${r}</option>`).join("")}</select><p class="note">${T("funding_note")}</p>` : "";
     const queries = key === "funding" ? "" : `<label>${T("keywords")} · ${(s.queries || []).length}</label><textarea data-q="${key}">${esc((s.queries || []).join("\n"))}</textarea>`;
-    grid.insertAdjacentHTML("beforeend", `<div class="pcard"><div class="ph"><label class="switch"><input type="checkbox" data-en="${key}" ${s.enabled ? "checked" : ""}><span></span></label><b>${esc(meta.name())}</b><span class="price">${meta.cost}</span></div><div class="pt">${queries}${extra}</div></div>`);
+    grid.insertAdjacentHTML("beforeend", `<div class="pcard"><div class="ph"><label class="switch"><input type="checkbox" data-en="${key}" ${s.enabled ? "checked" : ""}><span></span></label><b>${esc(meta.name())}</b><span class="price">${esc(meta.cost())}</span></div><div class="pt">${queries}${extra}</div></div>`);
   }
 }
 
@@ -541,7 +553,7 @@ function filterQS() {
 function ago(ts) {
   if (!ts) return "";
   const d = (Date.now() / 1000 - ts) / 86400;
-  return d < 1 ? Math.max(1, Math.round(d * 24)) + "h ago" : Math.round(d) + "d ago";
+  return d < 1 ? T("ago_h", Math.max(1, Math.round(d * 24))) : T("ago_d", Math.round(d));
 }
 async function loadSignals() {
   const rows = await api("/api/signals?" + filterQS());
@@ -558,11 +570,11 @@ async function loadSignals() {
         <div class="meta"><span class="pill src src-${esc(r.source)}">${esc(r.source)}</span>${r.community ? `<span>${esc(r.community)}</span>` : ""}<span>· ${ago(r.created_utc)}</span><span>· ↑ ${r.engagement}</span></div>
         ${head}
         <div class="snippet" title="${T("expand")}">${esc(r.text)}</div>
-        <div class="foot">${matched}<span>q: ${esc(r.query)}</span>${!r.title ? `<a href="${safeUrl(r.url)}" target="_blank" rel="noopener noreferrer">open ↗</a>` : ""}</div>
+        <div class="foot">${matched}<span>${T("q_prefix")}${esc(r.query)}</span>${!r.title ? `<a href="${safeUrl(r.url)}" target="_blank" rel="noopener noreferrer">${T("open")}</a>` : ""}</div>
       </div>
       <div class="side">
         <div class="who">${r.author_url ? `<a href="${safeUrl(r.author_url)}" target="_blank" rel="noopener noreferrer">${esc(r.author || "—")}</a>` : esc(r.author || "—")}</div>
-        <select data-id="${r.id}" class="st">${["new","qualified","contacted","replied","ignored"].map(s => `<option ${s===r.status?"selected":""}>${s}</option>`).join("")}</select>
+        <select data-id="${r.id}" class="st">${["new","qualified","contacted","replied","ignored"].map(s => `<option value="${s}" ${s===r.status?"selected":""}>${T("st_" + s)}</option>`).join("")}</select>
         <input class="noteinput" data-id="${r.id}" value="${esc(r.note)}" placeholder="${T("note_ph")}">
       </div></div>`;
   }).join("") || `<div class="empty"><b>${T("empty_t")}</b>${T("empty_d")}</div>`;

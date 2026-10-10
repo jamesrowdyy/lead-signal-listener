@@ -11,7 +11,7 @@ Lead Signal Listener 是一个在本地运行的开源线索发现工具。它�
 <details>
 <summary><b>更多截图</b>：监听配置页</summary>
 
-![监听配置：内置数据源、RSS/Atom、Treg 目录搜索和自定义数据源](docs/screenshot-listeners.png)
+![监听配置：内置数据源、RSS/Atom、Treg 目录搜索和自定义数据源](docs/screenshot-listeners-zh.png)
 
 </details>
 
