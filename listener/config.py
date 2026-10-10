@@ -7,13 +7,17 @@ import threading
 
 from .scoring import DEFAULT_RULES
 
+# Example strategy (finding companies that struggle with AI search visibility). Replace with your own.
+# Short 2-4 word phrases in the buyer's words match far more posts than long exact sentences.
 PAIN_QUERIES = [
-    "AI Overviews traffic drop",
-    "ChatGPT doesn't mention our brand",
-    "how to show up in ChatGPT",
-    "GEO agency recommendation",
-    "organic traffic dropped AI search",
+    "AI Overviews traffic",
+    "traffic dropped AI",
+    "show up in ChatGPT",
+    "ChatGPT recommend brand",
     "AI search visibility",
+    "GEO agency",
+    "LLM SEO",
+    "Perplexity ranking",
 ]
 
 DEFAULT_CONFIG = {
@@ -28,13 +32,14 @@ DEFAULT_CONFIG = {
     "schedule_hours": 0,
     "min_score_to_keep": 10,
     "sources": {
-        "hn": {"enabled": True, "queries": ["AI Overviews", "ChatGPT SEO", "LLM visibility",
-                                            "customer acquisition"]},
-        "reddit": {"enabled": True, "queries": PAIN_QUERIES},
-        "x": {"enabled": True, "queries": PAIN_QUERIES[:4]},
-        "linkedin_posts": {"enabled": False, "queries": PAIN_QUERIES[:3]},
-        "linkedin_jobs": {"enabled": True, "location": "United States",
-                          "queries": ["Head of Growth", "Growth Marketing Manager", "SEO Manager GEO"]},
+        "hn": {"enabled": True, "queries": ["AI Overviews", "ChatGPT SEO", "LLM visibility", "AI search traffic"]},
+        # max_pages: pages per keyword per run (each page is one paid call). Reddit pages hold ~7 posts, X ~20.
+        "reddit": {"enabled": True, "max_pages": 3, "queries": PAIN_QUERIES},
+        "x": {"enabled": True, "max_pages": 3, "queries": PAIN_QUERIES[:5]},
+        "linkedin_posts": {"enabled": False, "max_pages": 2, "queries": PAIN_QUERIES[:4]},
+        "linkedin_jobs": {"enabled": True, "max_pages": 2, "location": "United States",
+                          "queries": ["Head of Growth", "SEO Manager", "Growth Marketing Manager",
+                                      "Content Marketing Manager"]},
         "funding": {"enabled": False, "region": "US"},
     },
     # Free: any RSS/Atom feed. Optional keyword filter (match any; empty = keep everything).

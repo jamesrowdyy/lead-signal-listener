@@ -352,7 +352,7 @@ const I18N = {
     f_lookback: "Lookback (days)", f_percall: "Per-call cap (USD)", f_perrun: "Per-run budget (USD)", f_schedule: "Auto-run every (hours, 0 = off)", f_minkeep: "Drop leads scoring below",
     tok_env: "Using TREG_TOKEN environment variable", tok_file: "Saved · ", tok_none: "Not set · only free HN will run",
     kicker: (n, d) => `${n} sources live · ${d}d lookback`,
-    keywords: "keywords", location: "location", region: "region", funding_note: "Funding events from US / EU news. No keywords needed.",
+    keywords: "keywords", pages_label: "pages per keyword (each page is one paid call)", location: "location", region: "region", funding_note: "Funding events from US / EU news. No keywords needed.",
     src_linkedin_posts: "LinkedIn posts", src_linkedin_jobs: "LinkedIn hiring signals", src_funding: "Funding signals",
     saved: "Saved", enter_token: "Please enter a token", verifying: "Verifying…", rules_saved: "Rules saved",
     json_err: "Invalid JSON: ", rescored: n => `Rescored ${n} leads`,
@@ -399,7 +399,7 @@ const I18N = {
     f_lookback: "回看天数", f_percall: "单次调用上限 (USD)", f_perrun: "单次运行预算 (USD)", f_schedule: "自动运行间隔 (小时，0 = 关闭)", f_minkeep: "低于此分不入库",
     tok_env: "使用环境变量 TREG_TOKEN", tok_file: "已保存 · ", tok_none: "未设置 · 只运行免费的 HN",
     kicker: (n, d) => `${n} 个数据源启用 · 回看 ${d} 天`,
-    keywords: "关键词", location: "地区", region: "地区", funding_note: "抓取美国 / 欧洲新闻里的融资事件，不需要关键词。",
+    keywords: "关键词", pages_label: "每个关键词抓几页（每页一次付费调用）", location: "地区", region: "地区", funding_note: "抓取美国 / 欧洲新闻里的融资事件，不需要关键词。",
     src_linkedin_posts: "LinkedIn 帖子", src_linkedin_jobs: "LinkedIn 招聘信号", src_funding: "融资信号",
     saved: "已保存", enter_token: "请输入 token", verifying: "校验中…", rules_saved: "规则已保存",
     json_err: "JSON 格式错误：", rescored: n => `已重新打分 ${n} 条`,
@@ -533,7 +533,9 @@ async function loadConfig() {
     const extra = key === "linkedin_jobs" ? `<label style="margin-top:12px">${T("location")}</label><input type="text" data-loc="${key}" value="${esc(s.location || "United States")}" style="width:100%">`
                 : key === "funding" ? `<label>${T("region")}</label><select data-region="${key}">${["US","EU","GLOBAL"].map(r => `<option ${s.region===r?"selected":""}>${r}</option>`).join("")}</select><p class="note">${T("funding_note")}</p>` : "";
     const queries = key === "funding" ? "" : `<label>${T("keywords")} · ${(s.queries || []).length}</label><textarea data-q="${key}">${esc((s.queries || []).join("\n"))}</textarea>`;
-    grid.insertAdjacentHTML("beforeend", `<div class="pcard"><div class="ph"><label class="switch"><input type="checkbox" data-en="${key}" ${s.enabled ? "checked" : ""}><span></span></label><b>${esc(meta.name())}</b><span class="price">${esc(meta.cost())}</span></div><div class="pt">${queries}${extra}</div></div>`);
+    const paged = ["reddit", "x", "linkedin_posts", "linkedin_jobs"].includes(key);
+    const pagesInput = paged ? `<label style="margin-top:12px">${T("pages_label")}</label><input type="number" min="1" max="10" data-pages="${key}" value="${esc(s.max_pages || 3)}" style="width:90px">` : "";
+    grid.insertAdjacentHTML("beforeend", `<div class="pcard"><div class="ph"><label class="switch"><input type="checkbox" data-en="${key}" ${s.enabled ? "checked" : ""}><span></span></label><b>${esc(meta.name())}</b><span class="price">${esc(meta.cost())}</span></div><div class="pt">${queries}${pagesInput}${extra}</div></div>`);
   }
 }
 
@@ -563,6 +565,7 @@ $("saveSources").onclick = async () => {
     const q = document.querySelector(`[data-q="${key}"]`); if (q) s.queries = q.value.split("\n").map(x => x.trim()).filter(Boolean);
     const loc = document.querySelector(`[data-loc="${key}"]`); if (loc) s.location = loc.value.trim();
     const reg = document.querySelector(`[data-region="${key}"]`); if (reg) s.region = reg.value;
+    const pg = document.querySelector(`[data-pages="${key}"]`); if (pg) s.max_pages = Math.max(1, Math.min(10, +pg.value || 1));
     sources[key] = s;
   }
   const lines = id => $(id).value.split("\n").map(x => x.trim()).filter(Boolean);

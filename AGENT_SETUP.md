@@ -80,13 +80,14 @@ Turn the ICP into keyword sets. Rules that work:
 
 - **Write like the buyer, not like the seller.** Use "our traffic dropped after AI Overviews", not "GEO services".
 - **Questions and first person do well:** "how do I…", "anyone tried…", "we can't get…", "looking for an agency…".
-- **Keep each query to 3–6 words.** Long exact phrases return nothing; single words return noise.
-- Aim for **4–8 queries per paid source**, because each query is one API call per run.
+- **Keep each query to 2–4 words.** Long exact sentences ("ChatGPT doesn't mention our brand") match very little; single words return noise. Short buyer phrases ("show up in ChatGPT") work best.
+- Aim for **5–10 queries per paid source**.
+- **Pages:** each paged source (Reddit, X, LinkedIn) has `max_pages` (default 3 for Reddit/X, 2 for LinkedIn). One page = one paid call. A Reddit page holds ~7 posts and an X page ~20, and later pages are usually still relevant, so more pages is the cheapest way to get more leads. Raise it before adding many more keywords.
 - **Hiring signals:** use job titles that imply budget for the problem (e.g. "Head of Growth", "SEO Manager").
 - **RSS:** subreddit `.rss` feeds plus `https://hnrss.org/newest?q=<keyword>`; use the RSS keyword filter to cut noise.
 - **Other platforms:** search the catalog and add custom sources (see Step 7).
 
-Show the user a table: source × queries, plus an estimated cost per run (number of paid queries × ~$0.002). Let them edit it.
+Show the user a table: source × queries × pages, plus an estimated cost per run (paid queries × pages × ~$0.002 for Reddit/LinkedIn posts, ~$0.001 for X, ~$0.0005 for LinkedIn jobs). Let them edit it.
 
 ## Step 5 — Propose scoring rules
 
@@ -127,8 +128,8 @@ curl -s -X POST http://127.0.0.1:8787/api/config -H "Content-Type: application/j
   "min_score_to_keep": 10,
   "sources": {
     "hn":            {"enabled": true,  "queries": ["AI Overviews traffic"]},
-    "reddit":        {"enabled": true,  "queries": ["traffic dropped AI Overviews", "how to show up in ChatGPT"]},
-    "x":             {"enabled": true,  "queries": ["ChatGPT doesn't mention our brand"]},
+    "reddit":        {"enabled": true,  "max_pages": 3, "queries": ["AI Overviews traffic", "show up in ChatGPT"]},
+    "x":             {"enabled": true,  "max_pages": 3, "queries": ["GEO agency", "AI search visibility"]},
     "linkedin_posts":{"enabled": false, "queries": []},
     "linkedin_jobs": {"enabled": true,  "location": "United States", "queries": ["Head of Growth"]},
     "funding":       {"enabled": false, "region": "US"}
@@ -171,7 +172,7 @@ To check the response shape, run one query with `max_cost_per_run_usd` set low, 
 
 ## Step 8 — First run, review, tune
 
-1. **Confirm the budget with the user before the first paid run.** The default config is about 13 paid calls per run, roughly $0.02.
+1. **Confirm the budget with the user before the first paid run.** The default config is about 50 paid calls per run (with paging), roughly $0.07. The per-run budget stops paging early if reached.
 2. Click **Run now** (or `POST /api/run`, or `python app.py --run-once`).
 3. Review the top 20 leads *with the user*. For each false positive, ask why it's wrong and turn the answer into a negative phrase or a keyword change.
 4. Save the rules, then click **Rescore all leads** (`POST /api/rescore`). Repeat until most of the top 20 are real buyers.

@@ -78,12 +78,12 @@ You can also search the catalog in the UI (**Listeners → Treg catalog**). Clic
 | LinkedIn jobs | hiring | `anyapi.linkedin.search.jobs` | $0.0005 / call |
 | Funding | funding | `getleadsio.companies.funding.feed` | per result |
 
-Prices are from the Treg catalog (Oct 2026). The `X-Treg-Cost-Micro` response header is authoritative. Each query makes one call per run. A typical run of the default config costs about **$0.02**.
+Prices are from the Treg catalog (Oct 2026). The `X-Treg-Cost-Micro` response header is authoritative. Each keyword fetches up to `max_pages` pages per run (default 3 for Reddit/X, 2 for LinkedIn; one page = one call). A run of the default config is about 50 calls, roughly **$0.07**.
 
 ## Cost control
 
 - **Per-call cap**, enforced by Treg through `X-Treg-Route-Max-Cost`
-- **Per-run budget**: remaining paid calls are skipped once it's reached
+- **Per-run budget**: paging and remaining paid calls stop once it's reached
 - **Idempotent replay**: re-running the same query within an hour is not billed again
 - **Auto-stop**: an invalid token (401) or empty balance (402) cancels the rest of the run
 - Spend and call counts are shown on the Leads dashboard

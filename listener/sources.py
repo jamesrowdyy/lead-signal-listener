@@ -114,7 +114,7 @@ def parse_reddit(resp, query):
 
 def parse_x(resp, query):
     data = unwrap(resp)
-    posts = data.get("posts") if isinstance(data, dict) else data
+    posts = (data.get("posts") or data.get("items")) if isinstance(data, dict) else data
     out = []
     for p in posts or []:
         if not isinstance(p, dict):
@@ -248,31 +248,68 @@ def _bucket(days):
     return f"{days}:{int(time.time() // 3600)}"
 
 
-def fetch_reddit(client: TregClient, query, days=7):
+def next_cursor(resp):
+    """Pagination token from a provider response, if any."""
+    for src in (resp, unwrap(resp)):
+        if isinstance(src, dict):
+            for k in ("after", "next_cursor", "nextCursor", "cursor"):
+                v = src.get(k)
+                if isinstance(v, str) and v:
+                    return v
+    return None
+
+
+# Paged fetchers: (client, query, days, cursor) -> (signals, next_cursor_or_None).
+# The cursor is opaque to the runner; it just passes back whatever it got.
+
+def fetch_reddit(client: TregClient, query, days=7, cursor=None):
     timeframe = "day" if days <= 1 else "week" if days <= 7 else "month" if days <= 31 else "year"
-    resp, _ = client.call(ENDPOINTS["reddit"], query={"query": query, "sort": "relevance", "timeframe": timeframe,
-                                                       "filter": "posts", "trim": "true"},
-                          idempotency_seed=f"reddit|{query}|{_bucket(days)}")
-    return parse_reddit(resp, query)
+    params = {"query": query, "sort": "relevance", "timeframe": timeframe, "filter": "posts", "trim": "true"}
+    if cursor:
+        params["after"] = cursor
+    resp, _ = client.call(ENDPOINTS["reddit"], query=params,
+                          idempotency_seed=f"reddit|{query}|{cursor or ''}|{_bucket(days)}")
+    return parse_reddit(resp, query), next_cursor(resp)
 
 
-def fetch_x(client: TregClient, query, days=7):
-    resp, _ = client.call(ENDPOINTS["x"], body={"q": query}, idempotency_seed=f"x|{query}|{_bucket(days)}")
-    return parse_x(resp, query)
+def fetch_x(client: TregClient, query, days=7, cursor=None):
+    # Page 1 goes through treg's router; a cursor only works with the provider that issued it,
+    # so later pages call that provider's endpoint directly. cursor = (endpoint_id, token).
+    if cursor:
+        endpoint, token = cursor
+        resp, _ = client.call(endpoint, body={"query": query, "cursor": token},
+                              idempotency_seed=f"x|{query}|{token}|{_bucket(days)}")
+    else:
+        endpoint = None
+        resp, _ = client.call(ENDPOINTS["x"], body={"q": query}, idempotency_seed=f"x|{query}|{_bucket(days)}")
+        served = (resp.get("_treg") or {}).get("served_by") if isinstance(resp, dict) else None
+        # Only providers known to accept {"query", "cursor"} are followed.
+        endpoint = served if served in X_PAGEABLE else None
+    token = next_cursor(resp)
+    return parse_x(resp, query), ((endpoint, token) if endpoint and token else None)
 
 
-def fetch_linkedin_posts(client: TregClient, query, days=7):
+X_PAGEABLE = {"anyapi.x.search.posts"}
+
+
+def fetch_linkedin_posts(client: TregClient, query, days=7, cursor=None):
     date_posted = "last-day" if days <= 1 else "last-week" if days <= 7 else "last-month" if days <= 31 else "last-year"
-    resp, _ = client.call(ENDPOINTS["linkedin_posts"], body={"query": query, "datePosted": date_posted},
-                          idempotency_seed=f"lip|{query}|{_bucket(days)}")
-    return parse_linkedin_posts(resp, query)
+    body = {"query": query, "datePosted": date_posted}
+    if cursor:
+        body["cursor"] = cursor
+    resp, _ = client.call(ENDPOINTS["linkedin_posts"], body=body,
+                          idempotency_seed=f"lip|{query}|{cursor or ''}|{_bucket(days)}")
+    return parse_linkedin_posts(resp, query), next_cursor(resp)
 
 
-def fetch_linkedin_jobs(client: TregClient, query, days=7, location="United States"):
+def fetch_linkedin_jobs(client: TregClient, query, days=7, cursor=None, location="United States"):
     posted = "24h" if days <= 1 else "week" if days <= 7 else "month"
-    resp, _ = client.call(ENDPOINTS["linkedin_jobs"], body={"query": query, "location": location, "postedLimit": posted},
-                          idempotency_seed=f"lij|{query}|{location}|{_bucket(days)}")
-    return parse_linkedin_jobs(resp, query)
+    body = {"query": query, "location": location, "postedLimit": posted}
+    if cursor:
+        body["cursor"] = cursor
+    resp, _ = client.call(ENDPOINTS["linkedin_jobs"], body=body,
+                          idempotency_seed=f"lij|{query}|{location}|{cursor or ''}|{_bucket(days)}")
+    return parse_linkedin_jobs(resp, query), next_cursor(resp)
 
 
 def fetch_funding(client: TregClient, days=7, region="US", limit=50):

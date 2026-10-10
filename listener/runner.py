@@ -7,6 +7,9 @@ from .i18n import http_hint, t
 from .scoring import score_signal
 from .treg_client import TregClient, TregError
 
+# Pages fetched per query for paged sources unless a source sets "max_pages".
+DEFAULT_PAGES = 3
+
 TREG_SOURCES = {
     "reddit": sources.fetch_reddit,
     "x": sources.fetch_x,
@@ -63,46 +66,70 @@ class Runner:
         def over_budget():
             return client is not None and client.spent_micro >= budget_micro
 
+        def pages_for(cfg_block):
+            try:
+                return max(1, min(10, int(cfg_block.get("max_pages", DEFAULT_PAGES))))
+            except (TypeError, ValueError):
+                return DEFAULT_PAGES
+
+        def single(fn):
+            # Wrap a non-paged fetcher into the paged signature.
+            return lambda cursor: (fn(), None)
+
+        # job = (name, query, fetch(cursor) -> (signals, next_cursor), max_pages)
         jobs = []
         if src_cfg.get("hn", {}).get("enabled"):
             for q in src_cfg["hn"].get("queries", []):
-                jobs.append(("hn", q, lambda q=q: sources.fetch_hn(q, days)))
+                jobs.append(("hn", q, single(lambda q=q: sources.fetch_hn(q, days)), 1))
         for name, fn in TREG_SOURCES.items():
-            if src_cfg.get(name, {}).get("enabled"):
-                for q in src_cfg[name].get("queries", []):
-                    jobs.append((name, q, lambda fn=fn, q=q: fn(client, q, days)))
+            sc = src_cfg.get(name, {})
+            if sc.get("enabled"):
+                for q in sc.get("queries", []):
+                    jobs.append((name, q, lambda cursor, fn=fn, q=q: fn(client, q, days, cursor), pages_for(sc)))
         jc = src_cfg.get("linkedin_jobs", {})
         if jc.get("enabled"):
             for q in jc.get("queries", []):
-                jobs.append(("linkedin_jobs", q, lambda q=q: sources.fetch_linkedin_jobs(
-                    client, q, days, jc.get("location") or "United States")))
+                jobs.append(("linkedin_jobs", q, lambda cursor, q=q: sources.fetch_linkedin_jobs(
+                    client, q, days, cursor, jc.get("location") or "United States"), pages_for(jc)))
         rc = cfg.get("rss") or {}
         if rc.get("enabled"):
             for url in rc.get("feeds", []):
-                jobs.append(("rss", url, lambda url=url: generic.fetch_rss(url, rc.get("keywords"))))
+                jobs.append(("rss", url, single(lambda url=url: generic.fetch_rss(url, rc.get("keywords"))), 1))
         for cs in cfg.get("custom_sources") or []:
             if not cs.get("enabled") or not cs.get("endpoint"):
                 continue
             for q in cs.get("queries") or [""]:
                 jobs.append((cs.get("name") or cs["endpoint"], q,
-                             lambda cs=cs, q=q: generic.fetch_custom(client, cs, q, days)))
+                             single(lambda cs=cs, q=q: generic.fetch_custom(client, cs, q, days)), 1))
         fc = src_cfg.get("funding", {})
         if fc.get("enabled"):
             jobs.append(("funding", fc.get("region", "US"),
-                         lambda: sources.fetch_funding(client, days, fc.get("region", "US"))))
+                         single(lambda: sources.fetch_funding(client, days, fc.get("region", "US"))), 1))
 
         free = {"hn", "rss"}
-        for name, q, fn in jobs:
+        for name, q, fetch, max_pages in jobs:
             if name not in free and disabled:
                 log.append(t(lang, "skip_no_token" if client is None else "skip_disabled", name=name, q=q))
                 continue
             if name not in free and over_budget():
                 log.append(t(lang, "skip_budget", name=name, q=q, budget=budget_micro / 1e6))
                 continue
+            got = kept = n = pages = 0
+            cursor = None
             try:
-                got, kept, n = keep(fn())
-                log.append(t(lang, "ok", name=name, q=q, got=got, kept=kept, new=n))
+                while pages < max_pages:
+                    if pages and name not in free and over_budget():
+                        break
+                    rows, cursor = fetch(cursor)
+                    pages += 1
+                    g, k, nn = keep(rows)
+                    got, kept, n = got + g, kept + k, n + nn
+                    if not cursor or not rows:
+                        break
+                log.append(t(lang, "ok", name=name, q=q, got=got, kept=kept, new=n, pages=pages))
             except TregError as e:
+                if pages:
+                    log.append(t(lang, "ok", name=name, q=q, got=got, kept=kept, new=n, pages=pages))
                 err = f"HTTP {e.status} {http_hint(lang, e.status)} {e.detail}".strip()
                 log.append(t(lang, "error", name=name, q=q, err=err))
                 if e.status in (401, 402):

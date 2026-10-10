@@ -78,12 +78,12 @@ python app.py --catalog "youtube search videos"
 | LinkedIn 招聘 | 招聘 | `anyapi.linkedin.search.jobs` | $0.0005/次 |
 | 融资 | 融资 | `getleadsio.companies.funding.feed` | 按返回条数计费 |
 
-单价取自 2026 年 10 月的 Treg 目录，以响应头 `X-Treg-Cost-Micro` 为准。每个关键词每次运行调用一次接口。按默认配置跑一次大约 **$0.02**。
+单价取自 2026 年 10 月的 Treg 目录，以响应头 `X-Treg-Cost-Micro` 为准。每个关键词每次运行最多抓 `max_pages` 页（Reddit、X 默认 3 页，LinkedIn 默认 2 页；每页一次调用）。按默认配置跑一次大约 50 次调用，约 **$0.07**。
 
 ## 花费控制
 
 - **单次调用上限**：通过 `X-Treg-Route-Max-Cost` 由 Treg 强制执行
-- **单次运行预算**：达到后跳过剩下的付费调用
+- **单次运行预算**：达到后停止翻页，并跳过剩下的付费调用
 - **幂等重放**：同一关键词一小时内重复运行，不重复计费
 - **自动停止**：Token 无效（401）或余额不足（402）时，取消本次运行剩下的调用
 - 花费和调用次数显示在线索页的统计卡片上
