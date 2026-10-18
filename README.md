@@ -104,7 +104,7 @@ The scoring is transparent, rule-based and free. Each lead is matched on:
 - engagement, and whether it's a question
 - **negative** phrases (self-promotion, job posts, spam)
 
-Edit the rules as JSON in **Listeners → Scoring rules**, then click **Rescore all leads** to apply them to existing leads. For deeper qualification, export JSON and pass it to an LLM.
+Edit the rules as JSON in **Listeners → Scoring rules**, then click **Rescore all leads** to apply them to existing leads. For optional, evidence-checked second-pass review of a JSON export, see [manual qualification](docs/qualification.md). It is off by default and never changes baseline scores or sends outreach.
 
 ## CLI
 
