@@ -28,7 +28,7 @@ def request_completion(*, source, base_url, model, api_key, timeout=20.0):
         if len(body) > 1000000:
             raise ValueError("oversize response")
         choice = json.loads(body)["choices"][0]
-        if choice.get("finish_reason") != "stop":
+        if not isinstance(choice, dict) or choice.get("finish_reason") != "stop":
             raise ValueError("incomplete completion")
         return choice["message"]["content"]
 
