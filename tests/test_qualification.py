@@ -101,6 +101,8 @@ class QualificationTests(unittest.TestCase):
                     payload['padding'] = 'x' * 1000001
                 if self.path.startswith('/truncated'):
                     payload['choices'][0]['finish_reason'] = 'length'
+                if self.path.startswith('/bad-choice'):
+                    payload = {'choices': [[]]}
                 self.wfile.write(json.dumps(payload).encode())
 
         server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
@@ -112,10 +114,10 @@ class QualificationTests(unittest.TestCase):
             self.assertEqual(qualify(SOURCE, base_url=url + '/good', **options)['status'], 'qualified')
             self.assertEqual(calls[0][1]['reasoning_effort'], 'medium')
             self.assertEqual(set(json.loads(calls[0][1]['messages'][1]['content'])), {'title', 'text', 'community'})
-            for route in ['/redirect', '/large', '/truncated']:
+            for route in ['/redirect', '/large', '/truncated', '/bad-choice']:
                 with self.subTest(route=route):
                     self.assertEqual(qualify(SOURCE, base_url=url + route, **options)['status'], 'failed')
-            self.assertEqual(len(calls), 4, 'no redirected or fallback request')
+            self.assertEqual(len(calls), 5, 'no redirected or fallback request')
         finally:
             server.shutdown()
             server.server_close()
