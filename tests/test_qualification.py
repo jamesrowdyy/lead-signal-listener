@@ -9,6 +9,28 @@ SOURCE = {"title": "Need help", "text": "Our traffic dropped. Looking for an age
 
 
 class QualificationTests(unittest.TestCase):
+    def test_null_optional_source_fields_are_empty_without_changing_baseline(self):
+        from listener.qualification import qualify
+        source={**SOURCE,"community":None,"title":None}
+        answer={"verdict":"unknown","evidence":[],"missing":["fit"]}
+        with patch("listener.qualification.request_completion",return_value=json.dumps(answer)) as call:
+            result=qualify(source,enabled=True,base_url="https://model.example/v1",model="fixture",api_key="fixture")
+        self.assertEqual(result["status"],"qualified")
+        self.assertEqual(result["baseline"],source)
+        self.assertEqual(call.call_args.kwargs["source"]["community"],"")
+        self.assertEqual(call.call_args.kwargs["source"]["title"],"")
+
+    def test_protocol_failures_return_safe_failure_without_retry(self):
+        import http.client
+        from listener.qualification import qualify
+        for error in [http.client.BadStatusLine("private-provider-body"),http.client.IncompleteRead(b"private-provider-body",30)]:
+            with patch("listener.qualification.request_completion",side_effect=error) as call:
+                result=qualify(SOURCE,enabled=True,base_url="https://model.example/v1",model="fixture",api_key="fixture")
+            self.assertEqual(result["status"],"failed")
+            self.assertEqual(result["baseline"],SOURCE)
+            self.assertNotIn("private-provider-body",json.dumps(result))
+            self.assertEqual(call.call_count,1)
+
     def test_export_gets_grounded_manual_review_without_changing_baseline(self):
         self.assertIsNotNone(importlib.util.find_spec("listener.qualification"),
                              "Optional second-pass qualification is not implemented")
