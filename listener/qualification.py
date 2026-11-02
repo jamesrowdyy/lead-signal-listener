@@ -1,5 +1,6 @@
 """Opt-in second-pass review of exported signals; never changes scoring or sends outreach."""
 import copy
+import http.client
 import json
 import urllib.request
 
@@ -72,14 +73,14 @@ def qualify(signal, *, enabled=False, base_url="", model="", api_key="", timeout
                 url.scheme not in (("https", "http") if allow_insecure_http else ("https",)) or
                 not 0 < float(timeout) <= 120):
             raise ValueError("invalid endpoint configuration")
-        source = {key: signal.get(key, "") for key in ("title", "text", "community")}
+        source = {key: "" if signal.get(key) is None else signal[key] for key in ("title", "text", "community")}
         if any(not isinstance(value, str) for value in source.values()) or len(json.dumps(source)) > 20000:
             raise ValueError("invalid source")
         answer = validate_answer(json.loads(request_completion(
             source=source, base_url=base_url, model=model, api_key=api_key, timeout=float(timeout))), source)
         return {**result, "status": "qualified", "model": model,
                 "qualification": {**answer, "outreach": "manual_only"}}
-    except (OSError, ValueError, TypeError, KeyError, IndexError):
+    except (OSError, http.client.HTTPException, ValueError, TypeError, KeyError, IndexError):
         # Never leak credentials, source text, or provider error bodies; never try another provider.
         return {**result, "status": "failed", "error": "qualification_unavailable_or_invalid"}
 
